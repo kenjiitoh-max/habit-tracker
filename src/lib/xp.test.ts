@@ -1,5 +1,5 @@
 import { afterEach, expect, it, vi } from 'vitest'
-import { createXpRepository, getLevel, XP_CHANGED, XP_STORAGE_KEY } from './xp'
+import { COMEBACK_XP, createXpRepository, getLevel, XP_CHANGED, XP_STORAGE_KEY } from './xp'
 import { createStudyTimeRepository } from './studyTime'
 import { createWorkoutSetRepository, WORKOUT_SETS_STORAGE_KEY } from './workoutSets'
 
@@ -114,4 +114,15 @@ it('uses only demo data and never reads or writes real XP', () => {
   expect(xp.read().totalXp).toBe(250)
   expect(read).not.toHaveBeenCalled()
   expect(write).not.toHaveBeenCalled()
+})
+
+it('awards the comeback bonus once per day on top of existing XP and keeps it after reload', () => {
+  localStorage.setItem(XP_STORAGE_KEY, JSON.stringify({ totalXp: 40, awarded: { 'study:2026-06-01:shadoten': 10 } }))
+  const xp = createXpRepository()
+  expect(xp.hasComeback('2026-06-03')).toBe(false)
+  xp.awardComeback('2026-06-03')
+  xp.awardComeback('2026-06-03')
+  expect(createXpRepository().read()).toEqual({ totalXp: 40 + COMEBACK_XP, awarded: { 'study:2026-06-01:shadoten': 10, 'comeback:2026-06-03': COMEBACK_XP } })
+  expect(xp.hasComeback('2026-06-03')).toBe(true)
+  expect(xp.hasComeback('2026-06-04')).toBe(false)
 })

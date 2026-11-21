@@ -15,7 +15,7 @@ describe('activity history', () => {
   it('preserves the longest after multiple missing days, choosing recent ties', () => {
     const dates = ['2026-05-01', '2026-05-02', '2026-06-01', '2026-06-02']
     expect(getActivityHistory(dates, '2026-06-08')).toEqual({
-      broken: true, totalDays: 4, longest: { length: 2, start: '2026-06-01', end: '2026-06-02' },
+      broken: true, totalDays: 4, longest: { length: 2, start: '2026-06-01', end: '2026-06-02' }, comebackDay: false, recordedToday: false,
     })
     expect(getHomeSummary([], [], { '2026-06-02': { spiful: 10 } }, [], '2026-06-08').streak).toBe(0)
   })
@@ -32,6 +32,16 @@ describe('activity history', () => {
     }
     expect(longestStreak([])).toBeNull()
     expect(getActivityHistory(['2026-06-04'], '2026-06-03').totalDays).toBe(0)
+  })
+})
+
+describe('comeback day', () => {
+  it('is only the day after the first missed day, regardless of whether today is recorded', () => {
+    expect(getActivityHistory(['2026-06-01'], '2026-06-03')).toMatchObject({ comebackDay: true, recordedToday: false })
+    expect(getActivityHistory(['2026-06-01', '2026-06-03'], '2026-06-03')).toMatchObject({ comebackDay: true, recordedToday: true })
+    for (const dates of [[], ['2026-06-03'], ['2026-06-02', '2026-06-03'], ['2026-05-31', '2026-06-03'], ['2026-06-01', '2026-06-04']]) {
+      expect(getActivityHistory(dates, '2026-06-03').comebackDay).toBe(dates.length === 2 && dates[0] === '2026-06-01')
+    }
   })
 })
 
