@@ -56,7 +56,7 @@ export default function HomeSummary({ habits, logs, date, studyRepository, worko
     <h1 id="home-heading">今日の記録</h1>
     {loading ? <p role="status">読み込み中…</p> : error ? <p>今日の記録を確認できません。</p> : !summary ? <p role="alert">今日の記録を読み込めませんでした。</p> : <>
       <StreakFlame streak={summary.streak} />
-      {celebration && celebration.key !== dismissed && <section className="streak-celebration" role="status" aria-label="ストリークの節目">
+      {celebration && celebration.key !== dismissed && celebration.key === `${summary.streakStart}:${reachedMilestone(summary.streak)}` && <section className="streak-celebration" role="status" aria-label="ストリークの節目">
         <span className="streak-celebration-mark" aria-hidden="true">🎉</span>
         <h2>{celebration.milestone}日連続、達成！</h2>
         <p>{celebration.milestone >= 100 ? '100日の大台です。積み上げた習慣は本物です！' : celebration.milestone >= 30 ? '1か月続きました。すっかり習慣になっています！' : '1週間続きました。この調子でいきましょう！'}</p>

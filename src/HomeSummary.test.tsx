@@ -61,4 +61,15 @@ describe('HomeSummary', () => {
     expect(screen.getByTestId('summary-streak')).toHaveTextContent('次の節目 7日まであと6日')
     expect(screen.queryByRole('status', { name: 'ストリークの節目' })).not.toBeInTheDocument()
   })
+  it('hides the celebration when the milestone record is undone', () => {
+    const date = '2026-06-07'
+    const habits = [{ id: 'reading', name: '読書', order: 0, createdAt: '2026-06-01T00:00:00Z' }]
+    const logs = Array.from({ length: 7 }, (_, i) => ({ habitId: 'reading', date: addDays(date, -i), done: true }))
+    const props = { habits, date, studyRepository: createStudyTimeRepository(), workoutRepository: createWorkoutSetRepository(), loading: false, error: false, milestoneRepository: createStreakMilestoneRepository() }
+    const { rerender } = render(<HomeSummary {...props} logs={logs} />)
+    expect(screen.getByRole('status', { name: 'ストリークの節目' })).toHaveTextContent('7日連続、達成！')
+    rerender(<HomeSummary {...props} logs={logs.slice(1)} />)
+    expect(screen.getByTestId('summary-streak')).toHaveTextContent('6日連続')
+    expect(screen.queryByRole('status', { name: 'ストリークの節目' })).not.toBeInTheDocument()
+  })
 })
