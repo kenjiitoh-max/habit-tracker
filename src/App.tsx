@@ -19,6 +19,7 @@ import { createXpRepository } from './lib/xp'
 import { createStreakMilestoneRepository } from './lib/streakMilestones'
 import XpCard from './XpCard'
 import HomeSummary from './HomeSummary'
+import DailyWrapUp from './DailyWrapUp'
 import HomeBody from './HomeBody'
 import Badges from './Badges'
 import { getHomeSummary } from './lib/homeSummary'
@@ -141,6 +142,7 @@ export default function App() {
       {view === 'record' ? <>
       <XpCard repository={xp} studyRepository={studyTimeRepository} workoutRepository={workoutRepository} />
       <HomeSummary habits={habits} logs={logs} date={date} studyRepository={studyTimeRepository} workoutRepository={workoutRepository} loading={loading} error={!!error} exercises={exercises} xpRepository={xp} milestoneRepository={milestones} />
+      <DailyWrapUp habits={habits} logs={logs} exercises={exercises} date={date} studyRepository={studyTimeRepository} workoutRepository={workoutRepository} xpRepository={xp} loading={loading} error={!!error} />
       <HomeBody />
       <Badges habits={habits} logs={logs} exercises={exercises} date={date} studyRepository={studyTimeRepository} workoutRepository={workoutRepository} demo={demo} loading={loading} error={!!error} />
       <WorkoutSets key={`workout-${date}`} date={date} repository={repository} workoutRepository={workoutRepository} onChange={recordsChanged} />
