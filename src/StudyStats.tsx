@@ -46,9 +46,9 @@ function StudyChart({ trend, title, period }: { trend: Bucket[]; title: string; 
         return (
           <g key={point.start}>
             <title>{formatRange(point.start, point.end)}：{formatMinutes(point.minutes)}{hasLegacy(point) && `、旧記録 ${formatLegacy(point)}`}</title>
-            {point.minutes === 0 ? <circle cx={x} cy={baseline} r="3" fill="#355f47" /> :
-              point.minutes !== null && <rect x={x - 9} y={baseline - height} width="18" height={height} rx="2" fill={index === trend.length - 1 ? '#355f47' : '#7c9d70'} />}
-            {hasLegacy(point) && <path d={`M${x} 12l4 4-4 4-4-4z`} fill="#986021" />}
+            {point.minutes === 0 ? <circle cx={x} cy={baseline} r="3" fill="var(--accent)" /> :
+              point.minutes !== null && <rect x={x - 9} y={baseline - height} width="18" height={height} rx="2" fill={index === trend.length - 1 ? 'var(--accent)' : 'var(--cyan)'} />}
+            {hasLegacy(point) && <path d={`M${x} 12l4 4-4 4-4-4z`} fill="var(--gold)" />}
             <text x={x} y="144" textAnchor="middle" className="chart-label">{shortDate(point.start, period)}</text>
           </g>
         )

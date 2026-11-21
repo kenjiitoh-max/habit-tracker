@@ -15,7 +15,7 @@ export default function StatsView({ habits, logs, date, children }: Props) {
 
   return (
     <section className="stats-view" data-testid="stats-view" aria-labelledby="stats-heading">
-      <p className="eyebrow">YOUR PROGRESS</p>
+      <p className="eyebrow">成長の記録</p>
       <h1 id="stats-heading">積み重ねを、見える形に。</h1>
       <p className="lead">小さな一歩を、振り返ってみよう。</p>
       {children}
@@ -31,14 +31,14 @@ export default function StatsView({ habits, logs, date, children }: Props) {
           <title id="chart-title">直近{period}日間の日別達成率</title>
           <desc id="chart-description">各日に存在した習慣のうち達成した割合。日ごとの数値は下の「日別データを見る」で確認できます。</desc>
           {[0, 50, 100].map((value) => <g key={value}>
-            <line x1="36" x2="300" y1={164 - value * 1.3} y2={164 - value * 1.3} stroke="#e5eade" strokeDasharray="3 3" />
+            <line x1="36" x2="300" y1={164 - value * 1.3} y2={164 - value * 1.3} stroke="var(--border)" strokeDasharray="3 3" />
             <text x="28" y={168 - value * 1.3} textAnchor="end" className="chart-label">{value}%</text>
           </g>)}
           {daily.map((day, index) => <g key={day.date}>
-            <rect x={36 + step * index + step * .18} y={164 - (day.percent ?? 0) * 1.3} width={step * .64} height={(day.percent ?? 0) * 1.3} rx="2" fill={index === daily.length - 1 ? '#355f47' : '#a8bf95'}>
+            <rect x={36 + step * index + step * .18} y={164 - (day.percent ?? 0) * 1.3} width={step * .64} height={(day.percent ?? 0) * 1.3} rx="2" fill={index === daily.length - 1 ? 'var(--accent)' : 'var(--cyan)'}>
               <title>{day.date}：{formatPercent(day.percent)}（{day.done}/{day.total}）</title>
             </rect>
-            {day.percent === null && <circle cx={36 + step * (index + .5)} cy="164" r="2" fill="#a4afa0" />}
+            {day.percent === null && <circle cx={36 + step * (index + .5)} cy="164" r="2" fill="var(--muted)" />}
             {(period === 7 || (index % 7 === 0 && index < daily.length - 3) || index === daily.length - 1) && <text x={36 + step * (index + .5)} y="186" textAnchor="middle" className="chart-label">{shortDate(day.date)}</text>}
           </g>)}
         </svg>

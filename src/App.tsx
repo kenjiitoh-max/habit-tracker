@@ -187,12 +187,12 @@ export default function App() {
       <footer>あなたのペースを、大切に。<br /><span>{demo ? 'サンプルへの変更は保存されません。' : 'データはこのブラウザだけに保存されます。'}</span></footer>
       <dialog ref={dialog} onCancel={(event) => { event.preventDefault(); closeDialog() }} aria-labelledby="dialog-title" data-testid="habit-dialog">
         {deleting ? <>
-          <p className="eyebrow">DELETE HABIT</p><h2 id="dialog-title">習慣を削除しますか？</h2>
+          <p className="eyebrow">習慣の削除</p><h2 id="dialog-title">習慣を削除しますか？</h2>
           <p className="dialog-description">「{deleting.name}」とその記録が削除されます。この操作は取り消せません。</p>
           {error && <p className="error" role="alert">{error}</p>}
           <div className="actions"><button className="secondary" onClick={closeDialog} disabled={busy} autoFocus>キャンセル</button><button className="danger" data-testid="confirm-delete-button" onClick={() => void remove()} disabled={busy}>{busy ? '削除中…' : '削除する'}</button></div>
         </> : <form onSubmit={(event) => void save(event)}>
-          <p className="eyebrow">{editing ? 'EDIT HABIT' : 'NEW HABIT'}</p><h2 id="dialog-title">{editing ? '習慣を編集' : '新しい習慣を追加'}</h2>
+          <p className="eyebrow">{editing ? '習慣の編集' : '習慣の追加'}</p><h2 id="dialog-title">{editing ? '習慣を編集' : '新しい習慣を追加'}</h2>
           <p className="dialog-description">無理なく続けられることから、はじめよう。</p>
           <label htmlFor="habit-name">習慣の名前 <span className="required">必須</span></label>
           <input autoFocus id="habit-name" data-testid="habit-name-input" value={name} onChange={(event) => setName(event.target.value)} required maxLength={80} placeholder="例：読書、ウォーキング" disabled={busy} />
