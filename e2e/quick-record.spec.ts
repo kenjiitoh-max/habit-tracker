@@ -40,11 +40,27 @@ test('筋トレ：起動から前回と同じ記録まで30秒以内（種目選
   expect(await repeat.evaluate((button) => getComputedStyle(button).getPropertyValue('-webkit-tap-highlight-color'))).toBe('rgba(0, 0, 0, 0)')
   await repeat.tap()
   await expect(section.getByRole('list', { name: 'ベンチプレスのセット' })).toContainText('62.5 kg × 8回')
+  const status = section.getByRole('status')
+  await expect(status).toBeEmpty()
   const elapsed = performance.now() - start
   console.log(`筋トレ: ${(elapsed / 1000).toFixed(2)}秒 / 3タップ相当（選択2＋保存1）、操作対象44px以上`)
   expect(elapsed).toBeLessThan(30_000)
   await select.scrollIntoViewIfNeeded()
   await screenshot(page, 'workout-previous')
+
+  const xp = page.getByRole('region', { name: 'レベルとXP' })
+  await expect(xp).toContainText('累計 20 XP')
+  await repeat.tap()
+  await expect(status).toContainText('総挙上量：1,000 kg')
+  await expect(status).not.toContainText('最大重量')
+  await expect(status).not.toContainText('最大回数')
+  await expect(xp).toContainText('累計 30 XP')
+
+  await section.getByLabel('回数').fill('9')
+  await section.getByRole('button', { name: '＋ セットを追加' }).tap()
+  await expect(status).toContainText('自己ベスト更新！')
+  await expect(status).toContainText('最大回数：9回')
+  await expect(xp).toContainText('累計 40 XP')
 })
 
 test('英語：起動からシャドテン保存まで30秒以内（入力＋保存の2タップと数値入力）', async ({ page }) => {
