@@ -2,6 +2,25 @@ import { describe, expect, it } from 'vitest'
 import { createWorkoutSetRepository, formatSet, groupByExercise, normalizeSet, WORKOUT_SETS_STORAGE_KEY } from './workoutSets'
 
 describe('workout sets', () => {
+  it('finds the last set of the latest earlier session, not today or another exercise', () => {
+    const repo = createWorkoutSetRepository()
+    repo.addSet('2026-01-01', { exerciseId: 'a', weightKg: 90, reps: 5 }, false)
+    repo.addSet('2026-01-03', { exerciseId: 'a', weightKg: 60, reps: 8 }, false)
+    const last = repo.addSet('2026-01-03', { exerciseId: 'a', weightKg: 62.5, reps: 6 }, false)
+    repo.addSet('2026-01-04', { exerciseId: 'a', weightKg: 100, reps: 1 }, false)
+    repo.addSet('2026-01-03', { exerciseId: 'b', reps: 12 }, true)
+    expect(repo.previousSet('a', '2026-01-04')).toEqual(last)
+    expect(repo.previousSet('b', '2026-01-04')).toMatchObject({ reps: 12 })
+    expect(repo.previousSet('new', '2026-01-04')).toBeUndefined()
+    expect(repo.previousSet('a', '2026-01-01')).toBeUndefined()
+  })
+
+  it('isolates demo previous values and does not overwrite unreadable history', () => {
+    localStorage.setItem(WORKOUT_SETS_STORAGE_KEY, 'broken')
+    expect(() => createWorkoutSetRepository().previousSet('a', '2026-01-04')).toThrow()
+    expect(createWorkoutSetRepository('2026-01-04').previousSet('preset-chest-bench-press', '2026-01-04')).toMatchObject({ weightKg: 62.5, reps: 6 })
+    expect(localStorage.getItem(WORKOUT_SETS_STORAGE_KEY)).toBe('broken')
+  })
   it('saves, updates and deletes sets per day without touching the habit data', () => {
     const legacy = JSON.stringify({ habits: [{ id: 'h', name: '筋トレ', unit: '回', createdAt: 'x', order: 0 }], logs: [{ habitId: 'h', date: '2026-01-01', done: true, value: 30 }] })
     localStorage.setItem('habit-tracker:v1', legacy)

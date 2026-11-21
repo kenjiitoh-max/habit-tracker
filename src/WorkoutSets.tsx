@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { bodyParts } from './lib/exercises'
 import type { HabitRepository } from './lib/storage'
@@ -55,16 +55,34 @@ export default function WorkoutSets({ date, repository, workoutRepository }: Pro
   const [editReps, setEditReps] = useState('')
   const [error, setError] = useState('')
   const [loadError, setLoadError] = useState(false)
+  const [previous, setPrevious] = useState<WorkoutSet>()
+
+  const selectExercise = useCallback((id: string, items: Exercise[]) => {
+    setExerciseId(id)
+    setError('')
+    try {
+      const last = workoutRepository.previousSet(id, date)
+      const bodyweight = items.find((item) => item.id === id)?.bodyweight
+      setPrevious(last && (bodyweight || last.weightKg !== undefined) ? last : undefined)
+      setWeight(last?.weightKg === undefined ? '' : String(last.weightKg))
+      setReps(last ? String(last.reps) : '')
+    } catch {
+      setPrevious(undefined)
+      setWeight('')
+      setReps('')
+      setError('前回の記録を読み込めませんでした。再読み込みしてください。')
+    }
+  }, [workoutRepository, date])
 
   useEffect(() => {
     let active = true
     repository.listExercises().then((items) => {
       if (!active) return
       setExercises(items)
-      setExerciseId((current) => current || items[0]?.id || '')
+      selectExercise(items[0]?.id || '', items)
     }).catch(() => { if (active) setLoadError(true) })
     return () => { active = false }
-  }, [repository])
+  }, [repository, selectExercise])
 
   const exerciseById = new Map(exercises.map((item) => [item.id, item]))
   const isBodyweightSet = (set: WorkoutSet) => set.weightKg === undefined
@@ -85,6 +103,15 @@ export default function WorkoutSets({ date, repository, workoutRepository }: Pro
     setEditWeight(set.weightKg === undefined ? '' : String(set.weightKg))
     setEditReps(String(set.reps))
     setError('')
+  }
+
+  function repeatPrevious() {
+    if (!selected || !previous) return
+    setError('')
+    try {
+      workoutRepository.addSet(date, previous, selected.bodyweight)
+      setSets(workoutRepository.listSets(date))
+    } catch { setError('セットを保存できませんでした。入力内容やブラウザの保存設定を確認してください。') }
   }
 
   function update(event: FormEvent<HTMLFormElement>) {
@@ -146,13 +173,17 @@ export default function WorkoutSets({ date, repository, workoutRepository }: Pro
           })}
           <form className="set-form add-set-form" onSubmit={add} aria-label="セットを追加">
             <label htmlFor="workout-exercise">種目</label>
-            <select id="workout-exercise" value={exerciseId} onChange={(event) => setExerciseId(event.target.value)} disabled={!exercises.length}>
+            <select id="workout-exercise" value={exerciseId} onChange={(event) => selectExercise(event.target.value, exercises)} disabled={!exercises.length}>
               {(Object.keys(bodyParts) as BodyPart[]).map((part) => (
                 <optgroup key={part} label={bodyParts[part]}>
                   {exercises.filter((item) => item.bodyPart === part).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
                 </optgroup>
               ))}
             </select>
+            {previous && <div className="previous-set">
+              <p className="field-note">前回（{previous.date}・最終セット）：{formatSet(selected?.bodyweight ? { reps: previous.reps } : previous)}</p>
+              <button type="button" className="primary add-set-button" onClick={repeatPrevious}>前回と同じ</button>
+            </div>}
             <SetFields idPrefix="workout" bodyweight={!!selected?.bodyweight} weight={weight} reps={reps} setWeight={setWeight} setReps={setReps} />
             {selected?.bodyweight && <p className="field-note">自重種目なので回数だけ記録します。</p>}
             <button className="primary add-set-button" disabled={!selected}>＋ セットを追加</button>

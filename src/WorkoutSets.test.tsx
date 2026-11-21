@@ -7,6 +7,44 @@ import { createWorkoutSetRepository } from './lib/workoutSets'
 import { getRepository } from './lib/storage'
 
 describe('workout sets UI', () => {
+  it('prefills the previous session and repeats it even after editing the inputs', async () => {
+    const repo = createWorkoutSetRepository()
+    repo.addSet(addDays(today(), -2), { exerciseId: 'preset-chest-bench-press', weightKg: 62.5, reps: 8 }, false)
+    repo.addSet(addDays(today(), -1), { exerciseId: 'preset-back-pullup', reps: 12 }, true)
+    const user = userEvent.setup()
+    render(<App />)
+    const section = within(screen.getByRole('region', { name: '今日の筋トレ' }))
+    await section.findByRole('option', { name: 'ベンチプレス' })
+    await user.selectOptions(section.getByLabelText('種目'), 'preset-chest-bench-press')
+    expect(section.getByLabelText('重量（kg）')).toHaveValue(62.5)
+    expect(section.getByLabelText('回数')).toHaveValue(8)
+    await user.clear(section.getByLabelText('回数'))
+    await user.type(section.getByLabelText('回数'), '9')
+    await user.click(section.getByRole('button', { name: '前回と同じ' }))
+    expect(repo.listSets(today())[0]).toMatchObject({ weightKg: 62.5, reps: 8 })
+    await user.selectOptions(section.getByLabelText('種目'), 'preset-back-pullup')
+    expect(section.getByLabelText('回数')).toHaveValue(12)
+    expect(section.queryByLabelText('重量（kg）')).not.toBeInTheDocument()
+    await user.click(section.getByRole('button', { name: '前回と同じ' }))
+    expect(repo.listSets(today())[1]).toMatchObject({ reps: 12 })
+    await user.selectOptions(section.getByLabelText('種目'), 'preset-legs-squat')
+    expect(section.queryByRole('button', { name: '前回と同じ' })).not.toBeInTheDocument()
+    expect(section.getByLabelText('回数')).toHaveValue(null)
+    expect(section.getByLabelText('重量（kg）')).toHaveValue(null)
+  })
+
+  it('shows a save error without losing previous values', async () => {
+    const repo = createWorkoutSetRepository()
+    repo.addSet(addDays(today(), -1), { exerciseId: 'preset-back-pullup', reps: 12 }, true)
+    const user = userEvent.setup()
+    render(<App />)
+    const repeat = await screen.findByRole('button', { name: '前回と同じ' })
+    localStorage.setItem('habit-tracker:workout-sets:v1', 'broken')
+    await user.click(repeat)
+    expect(screen.getByRole('alert')).toHaveTextContent('セットを保存できませんでした')
+    expect(screen.getByLabelText('回数')).toHaveValue(12)
+    expect(localStorage.getItem('habit-tracker:workout-sets:v1')).toBe('broken')
+  })
   beforeEach(() => {
     HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', '') }
     HTMLDialogElement.prototype.close = function () { this.removeAttribute('open') }
