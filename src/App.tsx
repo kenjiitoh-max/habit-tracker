@@ -17,6 +17,7 @@ import WorkoutSets from './WorkoutSets'
 import { createXpRepository } from './lib/xp'
 import XpCard from './XpCard'
 import HomeSummary from './HomeSummary'
+import HomeBody from './HomeBody'
 
 export default function App() {
   const [repository] = useState(() => getRepository())
@@ -125,6 +126,7 @@ export default function App() {
       {view === 'record' ? <>
       <XpCard repository={xp} studyRepository={studyTimeRepository} workoutRepository={workoutRepository} />
       <HomeSummary habits={habits} logs={logs} date={date} studyRepository={studyTimeRepository} workoutRepository={workoutRepository} loading={loading} error={!!error} />
+      <HomeBody />
       <WorkoutSets key={`workout-${date}`} date={date} repository={repository} workoutRepository={workoutRepository} onChange={recordsChanged} />
       <StudyTime key={date} date={date} repository={studyTimeRepository} onChange={recordsChanged} />
       <section aria-labelledby="habits-heading">
