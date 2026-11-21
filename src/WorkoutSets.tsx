@@ -156,6 +156,7 @@ export default function WorkoutSets({ date, repository, workoutRepository, onCha
       const saved = workoutRepository.updateSet(editing.id, toInput(editing.exerciseId, editWeight, editReps, bodyweight), bodyweight)
       refreshAfterSave(history, saved)
       setEditing(null)
+      onChange?.()
     } catch { setError('セットを保存できませんでした。入力内容やブラウザの保存設定を確認してください。') }
   }
 
