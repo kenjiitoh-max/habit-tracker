@@ -124,7 +124,7 @@ export default function App() {
         <p className="lead">続けたいことを、ここに集めよう。</p>
         <div className="plant" aria-hidden="true"><span>✦</span><i /><b /></div>
       </section>
-      <WorkoutSets key={date} date={date} repository={repository} workoutRepository={workoutRepository} />
+      <WorkoutSets key={`workout-${date}`} date={date} repository={repository} workoutRepository={workoutRepository} />
       <StudyTime key={date} date={date} repository={studyTimeRepository} />
       <section aria-labelledby="habits-heading">
         <div className="section-heading"><h2 id="habits-heading">わたしの習慣 <span>{habits.length}</span></h2><span className="small-note">一歩ずつ、こつこつ。</span></div>
