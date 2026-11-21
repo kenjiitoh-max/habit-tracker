@@ -1,4 +1,5 @@
 import { addDays } from './date'
+import { createPresets, normalizeExercise } from './exercises'
 import type { HabitInput, HabitRepository } from './storage'
 import type { Habit, HabitLog } from './types'
 
@@ -17,6 +18,7 @@ function normalize(input: HabitInput): HabitInput {
 }
 
 export function createDemoRepository(todayKey: string): HabitRepository {
+  const exercises = createPresets()
   const random = randomGenerator(20260102)
   const samples = [
     { name: '筋トレ', unit: '回', days: 60, rate: .8, streak: 4, min: 15, step: 5, steps: 8 },
@@ -48,6 +50,18 @@ export function createDemoRepository(todayKey: string): HabitRepository {
   }
 
   return {
+    async listExercises() { return exercises.map((item) => ({ ...item })) },
+    async createExercise(input) {
+      const exercise = { ...normalizeExercise(input), id: crypto.randomUUID(), createdAt: new Date().toISOString() }
+      exercises.push(exercise)
+      return { ...exercise }
+    },
+    async updateExercise(id, changes) {
+      const index = exercises.findIndex((item) => item.id === id)
+      if (index === -1) throw new Error('種目が見つかりません。')
+      exercises[index] = { ...exercises[index], ...normalizeExercise({ ...exercises[index], ...changes }) }
+      return { ...exercises[index] }
+    },
     async listHabits() {
       return [...habits].sort((a, b) => a.order - b.order).map((habit) => ({ ...habit }))
     },

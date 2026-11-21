@@ -36,7 +36,9 @@ test('今日の学習時間をサービス別に保存・修正でき、既存�
   await page.reload()
   await expect(shadoten).toHaveValue('0')
   await expect(spiful).toHaveValue('10')
-  expect(await page.evaluate(() => localStorage.getItem('habit-tracker:v1'))).toBe(legacy)
+  const stored = JSON.parse((await page.evaluate(() => localStorage.getItem('habit-tracker:v1')))!)
+  const { habits, logs } = JSON.parse(legacy)
+  expect({ habits: stored.habits, logs: stored.logs }).toEqual({ habits, logs })
 
   await page.clock.fastForward(2000)
   await expect(shadoten).toHaveValue('')

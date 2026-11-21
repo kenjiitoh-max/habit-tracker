@@ -8,6 +8,7 @@ import { createStudyTimeRepository } from './lib/studyTime'
 import CheckinControls from './CheckinControls'
 import StatsView from './StatsView'
 import BodyView from './BodyView'
+import ExercisesView from './ExercisesView'
 import StudyTime from './StudyTime'
 import YesterdayRecords from './YesterdayRecords'
 
@@ -20,7 +21,7 @@ export default function App() {
   const [logs, setLogs] = useState<HabitLog[]>([])
   const [date, setDate] = useState(() => today())
   const [studyTimeRepository] = useState(() => createStudyTimeRepository(demo ? date : undefined))
-  const [view, setView] = useState<'record' | 'yesterday' | 'stats' | 'body'>('record')
+  const [view, setView] = useState<'record' | 'yesterday' | 'stats' | 'exercises' | 'body'>('record')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [editing, setEditing] = useState<Habit | null | undefined>(undefined)
@@ -108,6 +109,7 @@ export default function App() {
         <button data-testid="nav-record" aria-pressed={view === 'record'} onClick={() => setView('record')}>記録</button>
         <button aria-pressed={view === 'yesterday'} onClick={() => setView('yesterday')}>昨日の記録</button>
         <button data-testid="nav-stats" aria-pressed={view === 'stats'} onClick={() => setView('stats')}>グラフ</button>
+        <button aria-pressed={view === 'exercises'} onClick={() => setView('exercises')}>種目</button>
         <button data-testid="nav-body" aria-pressed={view === 'body'} onClick={() => setView('body')}>体の記録</button>
       </nav>
       {view === 'record' ? <>
@@ -144,7 +146,7 @@ export default function App() {
         )}
         <button className="add-button" data-testid="add-habit-button" onClick={() => openForm(null)} disabled={loading || (!!error && !showDialog)}><span aria-hidden="true">＋</span> 習慣を追加する</button>
       </section>
-      </> : view === 'body' ? <BodyView date={date} /> : loading ? <p role="status">読み込み中…</p> : !error ? (
+      </> : view === 'exercises' ? <ExercisesView repository={repository} /> : view === 'body' ? <BodyView date={date} /> : loading ? <p role="status">読み込み中…</p> : !error ? (
         view === 'yesterday' ? <YesterdayRecords key={yesterday} date={yesterday} habits={habits} logs={logs}
           studyTimeRepository={studyTimeRepository} onBack={() => setView('record')} /> :
           <StatsView habits={habits} logs={logs} date={date} />

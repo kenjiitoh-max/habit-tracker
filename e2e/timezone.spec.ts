@@ -64,10 +64,13 @@ test('昨日の記録を日本時間で切り替え、数値なしと未記録�
   await expect(yesterday.getByText('スピフル').locator('..')).toHaveText('スピフル0 分')
   await expect(yesterday.getByText('読書')).toHaveCount(0)
   await expect(page.getByRole('spinbutton')).toHaveCount(0)
-  expect(await page.evaluate(() => [
+  const [storedRaw, storedStudy] = await page.evaluate(() => [
     localStorage.getItem('habit-tracker:v1'),
     localStorage.getItem('habit-tracker:study-time:v1'),
-  ])).toEqual([legacy, study])
+  ])
+  const stored = JSON.parse(storedRaw!)
+  expect({ habits: stored.habits, logs: stored.logs }).toEqual(JSON.parse(legacy))
+  expect(storedStudy).toBe(study)
 
   await yesterday.getByRole('button', { name: '今日の入力へ戻る' }).tap()
   await expect(page.getByRole('spinbutton', { name: 'シャドテン（分）' })).toHaveValue('15')
