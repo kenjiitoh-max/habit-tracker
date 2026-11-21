@@ -1,6 +1,32 @@
 # 習慣トラッカー
 自分のペースで続けたい習慣を管理する、日本語・モバイルファーストのWebアプリです。
 
+公開URL： https://kenjiitoh-max.github.io/habit-tracker/
+
+## ホーム画面に追加・オフライン利用
+
+- iPhone：Safariで公開URLを開き、共有 →「ホーム画面に追加」を選びます。
+- Android：Chromeで公開URLを開き、メニュー →「ホーム画面に追加」または「アプリをインストール」を選びます。
+- 初回はオンラインで開いてください。読み込み完了後は、オフラインでも習慣の記録・閲覧ができます。
+- アプリ本体はオンライン時に自動更新されます。データは引き続き端末内だけに保存されます。iPhoneではSafariとホーム画面アプリで保存領域が異なる場合があります。
+
+## GitHub Pagesへの公開
+
+リポジトリの **Settings → Pages → Build and deployment → Source** を、初回のみ **GitHub Actions** に設定してください。
+`main` へのpush、またはActionsの「Deploy to GitHub Pages」→「Run workflow」で、Node.js 24によるビルドと公開を実行します。
+ワークフローを手動実行する場合も、公開対象のブランチは `main` を選んでください。
+このPRをpushしただけでは公開されません。
+
+ローカルでPWAの本番動作を確認する場合：
+
+```sh
+npm run build
+npx vite preview
+# http://localhost:4173/habit-tracker/ を開く
+```
+
+開発サーバーではService Workerは登録されません。PWAにはHTTPS（ローカル検証ではlocalhost）が必要です。
+
 ## ローカルで動かす
 
 Node.js 22.12以上（推奨：Node.js 24 LTS）とnpmを使用します。
@@ -39,4 +65,4 @@ npm run build     # dist/ に静的サイトを出力
 - `src/lib/storage.ts`：唯一の永続化窓口。非同期 `HabitRepository` と `getRepository()` により将来の実装差し替えに対応
 
 Vite + React + TypeScript、Vitest、ESLintを使用。公開パスは `/habit-tracker/` です。
-PWA・デモモード・デプロイ・E2E/CIは今後追加予定です。
+デモモード・E2E/CIは今後追加予定です。
