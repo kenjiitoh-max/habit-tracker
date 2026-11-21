@@ -104,3 +104,10 @@ label { display: block; font-size: 13px; margin: 22px 0 10px; font-weight: 500; 
 .exercise-form .primary { background: #80efc2; color: #102c25; border-color: #80efc2; }
 .exercise-form .secondary { background: #1a2b36; color: #d5e7ec; border-color: #54717c; }
 .exercises-view .error { color: #ffb6ae; }
+.body-view { padding-top: 30px; }.body-view h1 { font-size: 24px; }
+.body-form { margin-top: 24px; }.body-form label:first-child { margin-top: 0; }
+.body-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }.body-fields input { text-align: right; }
+.body-notice { color: #355f47; font-size: 12px; margin: 8px 0 0; }
+.body-history { margin-top: 26px; }.body-history h2 { font-size: 15px; }.body-history ul { list-style: none; padding: 0; margin: 16px 0 0; display: grid; gap: 8px; }
+.body-history li { display: flex; align-items: center; gap: 8px; background: white; border: 1px solid #e7e9e0; border-radius: 13px; padding: 6px 8px 6px 14px; }
+.body-item-date { font-size: 12px; color: #6c7c71; }.body-item-values { flex: 1; font-size: 14px; text-align: right; margin-right: 4px; }
