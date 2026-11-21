@@ -19,6 +19,7 @@ import { createXpRepository } from './lib/xp'
 import XpCard from './XpCard'
 import HomeSummary from './HomeSummary'
 import HomeBody from './HomeBody'
+import { getHomeSummary } from './lib/homeSummary'
 
 export default function App() {
   const [repository] = useState(() => getRepository())
@@ -40,7 +41,7 @@ export default function App() {
   const [name, setName] = useState('')
   const [unit, setUnit] = useState('')
   const [busy, setBusy] = useState(false)
-  const [, refreshSummary] = useState(0)
+  const [recordsVersion, refreshSummary] = useState(0)
   const recordsChanged = () => refreshSummary((value) => value + 1)
   const dialog = useRef<HTMLDialogElement>(null)
   const showDialog = editing !== undefined || deleting !== null
@@ -56,6 +57,14 @@ export default function App() {
       .finally(() => { if (active) setLoading(false) })
     return () => { active = false }
   }, [repository, view])
+
+  useEffect(() => {
+    if (loading || error) return
+    try {
+      const { comebackDay, recordedToday } = getHomeSummary(habits, logs, studyTimeRepository.listDays(), workoutRepository.listAllSets(), date)
+      if (comebackDay && recordedToday) xp.awardComeback(date)
+    } catch { /* Records that cannot be read earn no bonus; HomeSummary reports the failure. */ }
+  }, [loading, error, habits, logs, date, recordsVersion, studyTimeRepository, workoutRepository, xp])
 
   useEffect(() => {
     const refreshDate = () => setDate(today())

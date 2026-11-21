@@ -4,9 +4,11 @@ import type { WorkoutSet } from './workoutSets'
 export const XP_STORAGE_KEY = 'habit-tracker:xp:v1'
 export const STUDY_XP = 10
 export const WORKOUT_SET_XP = 10
+export const COMEBACK_XP = 30
 export const XP_PER_LEVEL = 100
 export const XP_CHANGED = 'habit-tracker:xp-changed'
 export interface XpData { totalXp: number; awarded: Record<string, number> }
+const comebackKey = (date: string) => `comeback:${date}`
 const empty = (): XpData => ({ totalXp: 0, awarded: {} })
 
 function readStored(): XpData {
@@ -41,6 +43,8 @@ export function createXpRepository(demo = false) {
       if (minutes >= 1) award(`study:${date}:${service}`, STUDY_XP)
     },
     awardSet(id: string) { award(`set:${id}`, WORKOUT_SET_XP) },
+    awardComeback(date: string) { award(comebackKey(date), COMEBACK_XP) },
+    hasComeback(date: string) { return Object.hasOwn(read().awarded, comebackKey(date)) },
     backfill(days: StudyDays, sets: WorkoutSet[]) {
       const data = read()
       let changed = false
