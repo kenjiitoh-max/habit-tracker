@@ -42,6 +42,13 @@ h2 { font-size: 17px; font-weight: 600; margin: 0; }
 .value-row input { width: 90px; padding: 8px; min-height: 44px; text-align: right; }
 .value-unit { color: #6c7c71; font-size: 12px; max-width: 80px; overflow-wrap: anywhere; }
 .checkin-note { color: #7a8679; font-size: 10px; margin: 9px 0 0; }
+.study-time { margin-bottom: 24px; }
+.study-time-form { display: grid; grid-template-columns: minmax(0, 1fr) 5rem auto; align-items: center; column-gap: 8px; }
+.study-time-form + .study-time-form { margin-top: 6px; }
+.study-time-form label { margin: 0; }
+.study-time-form input { min-height: 44px; padding: 8px; text-align: right; }
+.study-time-form button { padding: 8px 16px; border-radius: 9px; font-size: 13px; }
+.study-time-status { grid-column: 1 / -1; min-height: 1.4em; margin: 4px 0 0; font-size: 12px; }
 .view-switch { display: flex; gap: 6px; margin-top: 24px; border-bottom: 1px solid #dfe6d8; }
 .view-switch button { flex: 1; background: transparent; border: 0; border-bottom: 2px solid transparent; color: #738075; font-size: 13px; }
 .view-switch button[aria-pressed='true'] { border-bottom-color: #355f47; color: #355f47; font-weight: 600; }
