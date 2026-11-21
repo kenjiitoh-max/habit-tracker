@@ -1,3 +1,5 @@
+import { addDays } from './date'
+
 export const studyServices = {
   shadoten: 'シャドテン',
   spiful: 'スピフル',
@@ -20,7 +22,10 @@ function readStoredDays(): StudyDays {
 }
 
 export function createStudyTimeRepository(demoDate?: string) {
-  let demoDays: StudyDays = demoDate ? { [demoDate]: { shadoten: 20, spiful: 10 } } : {}
+  let demoDays: StudyDays = demoDate ? {
+    [demoDate]: { shadoten: 20, spiful: 10 },
+    [addDays(demoDate, -1)]: { shadoten: 25, spiful: 15 },
+  } : {}
   const read = () => demoDate ? demoDays : readStoredDays()
 
   return {
