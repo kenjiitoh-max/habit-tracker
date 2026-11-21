@@ -1,5 +1,11 @@
 .xp-card { margin: 20px 0; }
 .home-summary { margin-bottom: 24px; }
+.home-body { margin-bottom: 24px; font-size: 13px; }
+.home-body summary { cursor: pointer; padding: 12px 0; }
+.home-body .home-body-toggle { display: flex; align-items: center; gap: 10px; min-height: 48px; }
+.home-body input[type='checkbox'] { width: 20px; height: 20px; margin: 0; flex-shrink: 0; }
+.home-body h2 { font-size: 15px; margin-top: 16px; }
+.home-body ul { list-style: none; padding: 0; line-height: 2; }
 .home-summary h1 { font-size: 22px; line-height: 1.4; }
 .home-summary .date { margin-bottom: 8px; }
 .summary-streak { font-weight: 600; }
