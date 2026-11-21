@@ -1,5 +1,7 @@
 import { addDays, today } from './date'
 import { isDemoMode } from './storage'
+import { createXpRepository, xpRepository } from './xp'
+import type { XpRepository } from './xp'
 
 export interface BodyMeasurement {
   date: string
@@ -97,11 +99,20 @@ export function createDemoBodyRepository(todayKey: string): BodyRepository {
 }
 
 let demoRepository: BodyRepository | undefined
+const demoXp = createXpRepository(true)
 
-export function getBodyRepository(): BodyRepository {
+export function getBodyRepository(xp: XpRepository = isDemoMode() ? demoXp : xpRepository): BodyRepository {
+  let source = repository
   if (isDemoMode()) {
     demoRepository ??= createDemoBodyRepository(today())
-    return demoRepository
+    source = demoRepository
   }
-  return repository
+  return {
+    ...source,
+    async saveMeasurement(measurement) {
+      const saved = await source.saveMeasurement(measurement)
+      if (saved) xp.awardBody(saved)
+      return saved
+    },
+  }
 }
