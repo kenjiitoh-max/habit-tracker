@@ -16,6 +16,7 @@ import YesterdayRecords from './YesterdayRecords'
 import WorkoutSets from './WorkoutSets'
 import { createXpRepository } from './lib/xp'
 import XpCard from './XpCard'
+import HomeSummary from './HomeSummary'
 
 export default function App() {
   const [repository] = useState(() => getRepository())
@@ -36,6 +37,8 @@ export default function App() {
   const [name, setName] = useState('')
   const [unit, setUnit] = useState('')
   const [busy, setBusy] = useState(false)
+  const [, refreshSummary] = useState(0)
+  const recordsChanged = () => refreshSummary((value) => value + 1)
   const dialog = useRef<HTMLDialogElement>(null)
   const showDialog = editing !== undefined || deleting !== null
   const yesterday = addDays(date, -1)
@@ -121,21 +124,15 @@ export default function App() {
       </nav>
       {view === 'record' ? <>
       <XpCard repository={xp} studyRepository={studyTimeRepository} workoutRepository={workoutRepository} />
-      <section className="intro">
-        <p className="eyebrow">MY DAILY ROUTINE</p>
-        <p className="date" data-testid="today-date">{date.replaceAll('-', '.')} <span>日本時間</span></p>
-        <h1>小さな習慣を、<br />自分のペースで。</h1>
-        <p className="lead">続けたいことを、ここに集めよう。</p>
-        <div className="plant" aria-hidden="true"><span>✦</span><i /><b /></div>
-      </section>
-      <WorkoutSets key={`workout-${date}`} date={date} repository={repository} workoutRepository={workoutRepository} />
-      <StudyTime key={date} date={date} repository={studyTimeRepository} />
+      <HomeSummary habits={habits} logs={logs} date={date} studyRepository={studyTimeRepository} workoutRepository={workoutRepository} loading={loading} error={!!error} />
+      <WorkoutSets key={`workout-${date}`} date={date} repository={repository} workoutRepository={workoutRepository} onChange={recordsChanged} />
+      <StudyTime key={date} date={date} repository={studyTimeRepository} onChange={recordsChanged} />
       <section aria-labelledby="habits-heading">
         <div className="section-heading"><h2 id="habits-heading">わたしの習慣 <span>{habits.length}</span></h2><span className="small-note">一歩ずつ、こつこつ。</span></div>
         {loading ? <p role="status">読み込み中…</p> : (
           <ul className="habit-list" data-testid="habit-list">
             {habits.map((habit, index) => (
-              <li className="habit-card" data-testid="habit-item" key={habit.id}>
+              <li className="habit-card" data-testid="habit-item" key={habit.id} id={`habit-${habit.id}`} tabIndex={-1}>
                 <div className="habit-card-heading"><span className={`habit-icon tone-${index % 3}`} aria-hidden="true">{habit.name.slice(0, 1)}</span>
                 <div className="habit-info"><h3>{habit.name}</h3><p>{habit.unit ? `単位：${habit.unit}` : '単位なし'}</p></div>
                 <button className="edit-button" data-testid="edit-habit-button" aria-label={`${habit.name}を編集`} onClick={() => openForm(habit)}>編集 <span aria-hidden="true">↗</span></button>
