@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
+import BodyTrendChart from './BodyTrendChart'
 import { getBodyRepository } from './lib/bodyStorage'
 import type { BodyMeasurement } from './lib/bodyStorage'
 
@@ -110,6 +111,12 @@ export default function BodyView({ date }: Props) {
           {notice && <p className="body-notice" role="status">{notice}</p>}
           <div className="actions"><button className="primary" data-testid="body-save-button" disabled={busy || (!existing && !weight.trim() && !fat.trim())}>{busy ? '保存中…' : existing ? '記録を修正する' : '記録する'}</button></div>
         </form>
+        <section className="body-trends" aria-labelledby="body-trends-heading">
+          <h2 id="body-trends-heading">測定値の推移</h2>
+          <p className="field-note">移動平均は、当日を含む7暦日のうち、測った値だけで計算します。</p>
+          <BodyTrendChart items={items} date={date} metric="weightKg" label="体重" unit="kg" />
+          <BodyTrendChart items={items} date={date} metric="bodyFatPercent" label="体脂肪率" unit="%" />
+        </section>
         <section className="body-history" aria-labelledby="body-history-heading">
           <h2 id="body-history-heading">これまでの記録</h2>
           {items.length === 0 ? <p className="empty" data-testid="body-empty">まだ記録がありません。</p> : (

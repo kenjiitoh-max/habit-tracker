@@ -56,6 +56,8 @@ test('デモでは架空の測定値だけを使い、実データに触れな�
   await page.goto('./?demo=1')
   await page.getByTestId('nav-body').click()
   await expect(page.getByText('77.7')).toHaveCount(0)
+  await expect(page.getByRole('img', { name: '体重の推移' })).toBeVisible()
+  await expect(page.getByRole('img', { name: '体脂肪率の推移' })).toBeVisible()
   expect(await page.getByTestId('body-item').count()).toBeGreaterThan(30)
   await page.getByTestId('body-weight-input').fill('90')
   await page.getByTestId('body-save-button').click()
@@ -66,4 +68,30 @@ test('デモでは架空の測定値だけを使い、実データに触れな�
   expect(errors).toEqual([])
   const stored = await page.context().storageState()
   expect(stored.origins.flatMap((origin) => origin.localStorage).find((item) => item.name === 'habit-tracker:body:v1')?.value).toBe(original)
+})
+
+test('体の記録に指標別の実測値と移動平均を表示し、観測のない区間で線を切る', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('habit-tracker:body:v1', JSON.stringify({ measurements: [
+      { date: '2025-12-20', weightKg: 70, bodyFatPercent: 20 },
+      { date: '2025-12-22', bodyFatPercent: 19 },
+      { date: '2026-01-02', weightKg: 68 },
+    ] }))
+  })
+  await page.goto('./')
+  await page.getByTestId('nav-body').click()
+  const weight = page.getByRole('img', { name: '体重の推移' })
+  const fat = page.getByRole('img', { name: '体脂肪率の推移' })
+  await expect(weight.locator('circle')).toHaveCount(2)
+  await expect(fat.locator('circle')).toHaveCount(2)
+  await expect(weight.locator('path')).toHaveAttribute('d', /^M.*L.* M[^LM]+$/)
+  await expect(weight.locator('rect')).toHaveCount(1)
+  await expect(fat.locator('path')).toHaveAttribute('d', /^M[^M]+$/)
+
+  await page.getByRole('button', { name: '2025.12.20の記録を削除' }).click()
+  await expect(weight.locator('circle')).toHaveCount(1)
+  await expect(fat.locator('circle')).toHaveCount(1)
+  await page.getByRole('button', { name: '2025.12.22の記録を削除' }).click()
+  await expect(fat).toHaveCount(0)
+  await expect(page.getByText('体脂肪率の記録はまだありません。')).toBeVisible()
 })
