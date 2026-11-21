@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { getBodyRepository } from './lib/bodyStorage'
 import type { BodyMeasurement } from './lib/bodyStorage'
+import BodyTargets from './BodyTargets'
 
 interface Props { date: string }
 const toInput = (value?: number) => value === undefined ? '' : String(value)
@@ -89,6 +90,7 @@ export default function BodyView({ date }: Props) {
       <h1 id="body-heading">体の記録</h1>
       <p className="lead">測った日だけでOK。習慣の連続日数や達成率には含めません。</p>
       {loading ? <p role="status">読み込み中…</p> : <>
+        <BodyTargets items={items} />
         <form ref={form} className="stats-card body-form" onSubmit={(event) => void save(event)} noValidate>
           <label htmlFor="body-date">測定日</label>
           <input id="body-date" data-testid="body-date-input" type="date" value={formDate} max={date} required disabled={busy}
