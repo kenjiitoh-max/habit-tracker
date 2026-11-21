@@ -10,6 +10,7 @@ import StatsView from './StatsView'
 import BodyView from './BodyView'
 import ExercisesView from './ExercisesView'
 import StudyTime from './StudyTime'
+import StudyStats from './StudyStats'
 import YesterdayRecords from './YesterdayRecords'
 
 export default function App() {
@@ -149,7 +150,9 @@ export default function App() {
       </> : view === 'exercises' ? <ExercisesView repository={repository} /> : view === 'body' ? <BodyView date={date} /> : loading ? <p role="status">読み込み中…</p> : !error ? (
         view === 'yesterday' ? <YesterdayRecords key={yesterday} date={yesterday} habits={habits} logs={logs}
           studyTimeRepository={studyTimeRepository} onBack={() => setView('record')} /> :
-          <StatsView habits={habits} logs={logs} date={date} />
+          <StatsView habits={habits} logs={logs} date={date}>
+            <StudyStats date={date} habits={habits} logs={logs} repository={studyTimeRepository} />
+          </StatsView>
       ) : null}
       {error && !showDialog && view !== 'body' && <p className="error" role="alert">{error}</p>}
       <aside className="tip"><span aria-hidden="true">✧</span><p>大切なのは、完璧よりも続けること。<br /><strong>今日の小さな一歩が、明日の自分に。</strong></p></aside>
