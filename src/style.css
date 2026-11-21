@@ -9,6 +9,8 @@ button:focus-visible, input:focus-visible { outline: 3px solid #769e82; outline-
 .brand { display: flex; align-items: center; gap: 9px; font-size: 14px; font-weight: 700; }
 .brand-mark { display: grid; place-items: center; background: #315d48; color: white; width: 30px; height: 32px; border-radius: 10px 10px 10px 2px; font-size: 16px; }
 .local-badge { margin-left: auto; font-size: 10px; font-weight: 400; color: #64766c; border: 1px solid #dce2d8; border-radius: 20px; padding: 5px 9px; }
+.demo-banner { background: #edf1df; border: 1px solid #d3ddba; border-radius: 12px; padding: 14px; margin-top: 20px; font-size: 12px; color: #4b6240; }
+.demo-banner strong { font-size: 13px; font-weight: 600; }.demo-banner p { font-size: 11px; line-height: 1.8; margin: 7px 0; }.demo-banner a { display: inline-block; color: #355f47; font-size: 11px; padding: 8px 0; text-underline-offset: 3px; }
 .intro { position: relative; padding: 42px 0 32px; overflow: hidden; }
 .eyebrow { color: #64816b; font-size: 10px; font-weight: 700; letter-spacing: 2px; margin: 0 0 16px; }
 .date { font-size: 12px; color: #718075; margin: 0 0 14px; letter-spacing: 1px; }
@@ -25,7 +27,41 @@ h2 { font-size: 17px; font-weight: 600; margin: 0; }
 .section-heading h2 span { display: inline-grid; place-items: center; background: #e7ecdf; font-size: 11px; height: 23px; width: 23px; border-radius: 50%; margin-left: 6px; }
 .small-note { font-size: 10px; color: #7c867b; }
 .habit-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
-.habit-card { display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid #e7e9e0; border-radius: 15px; min-height: 94px; padding: 17px 12px 17px 16px; box-shadow: 0 3px 8px #24392a03; }
+.habit-card { background: #fff; border: 1px solid #e7e9e0; border-radius: 15px; padding: 17px 12px 17px 16px; box-shadow: 0 3px 8px #24392a03; }
+.habit-card-heading { display: flex; align-items: center; gap: 12px; }
+.checkin { margin-top: 16px; padding-top: 14px; border-top: 1px solid #edf0e8; }
+.checkin-row, .value-row { display: flex; align-items: center; gap: 10px; }
+.checkin-row { justify-content: space-between; }
+.checkin-toggle { padding: 9px 16px; border: 1px solid #c7d3bf; border-radius: 9px; background: #f6f8f2; color: #47664d; font-size: 13px; }
+.checkin-toggle[aria-pressed='true'] { background: #355f47; border-color: #355f47; color: white; }
+.checkin-toggle span { margin-right: 6px; }
+.streak { font-size: 12px; color: #567348; background: #eff3e9; padding: 6px 9px; border-radius: 20px; }
+.value-row { margin-top: 12px; }
+.value-row label { font-size: 11px; font-weight: 400; margin: 0 auto 0 0; }
+.value-row label span { color: #85907f; font-size: 10px; margin-left: 5px; }
+.value-row input { width: 90px; padding: 8px; min-height: 44px; text-align: right; }
+.value-unit { color: #6c7c71; font-size: 12px; max-width: 80px; overflow-wrap: anywhere; }
+.checkin-note { color: #7a8679; font-size: 10px; margin: 9px 0 0; }
+.view-switch { display: flex; gap: 6px; margin-top: 24px; border-bottom: 1px solid #dfe6d8; }
+.view-switch button { flex: 1; background: transparent; border: 0; border-bottom: 2px solid transparent; color: #738075; font-size: 13px; }
+.view-switch button[aria-pressed='true'] { border-bottom-color: #355f47; color: #355f47; font-weight: 600; }
+.stats-view { padding-top: 30px; }
+.stats-view h1 { font-size: 24px; }
+.period-switch { display: flex; background: #e8ede1; border-radius: 11px; padding: 4px; margin: 24px 0 18px; }
+.period-switch button { flex: 1; border: 0; border-radius: 8px; background: transparent; color: #6c7c65; font-size: 13px; }
+.period-switch button[aria-pressed='true'] { background: white; color: #355f47; box-shadow: 0 2px 5px #293e360a; font-weight: 600; }
+.stats-card { background: white; border: 1px solid #e7e9e0; border-radius: 16px; padding: 19px 16px 16px; }
+.stats-card-title { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.stats-card-title h2 { font-size: 14px; }.stats-card-title > span { font-size: 10px; color: #7c8974; }
+.stats-range { font-size: 11px; color: #7c8974; margin: 9px 0 0; }
+.stats-summary { display: flex; gap: 16px; align-items: center; margin-top: 20px; }
+.stats-summary strong { font-size: 36px; font-weight: 500; letter-spacing: -1px; }.stats-summary > span { font-size: 10px; color: #7c8974; line-height: 1.9; }
+.stats-chart { display: block; width: 100%; height: auto; overflow: visible; }
+.chart-label { font-size: 9px; fill: #788571; }
+.stats-explanation { font-size: 10px; line-height: 1.8; color: #7c8974; margin: 0; }
+.daily-details { font-size: 11px; color: #526b4d; margin-top: 14px; }.daily-details summary { cursor: pointer; padding: 6px 0; }
+.daily-details table { width: 100%; margin-top: 8px; border-collapse: collapse; text-align: right; }.daily-details th, .daily-details td { padding: 7px 3px; border-bottom: 1px solid #edf0e8; font-weight: 400; }.daily-details caption { text-align: left; padding: 6px 0; }
+.habit-rates { margin-top: 26px; }.habit-rates h2 { font-size: 15px; }.habit-rates ul { list-style: none; padding: 0; margin: 16px 0 0; display: grid; gap: 12px; }.habit-rates li { background: white; border: 1px solid #e7e9e0; border-radius: 13px; padding: 15px; }.rate-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }.rate-heading h3 { font-size: 13px; font-weight: 500; margin: 0; overflow-wrap: anywhere; }.rate-heading strong { font-size: 18px; font-weight: 500; }.rate-track { background: #edf1e7; height: 6px; border-radius: 6px; overflow: hidden; margin-top: 12px; }.rate-track span { display: block; height: 100%; background: #91ae7e; border-radius: inherit; }.habit-rates li p { font-size: 10px; color: #7c8974; margin: 7px 0 0; }
 .habit-icon { width: 42px; height: 46px; border-radius: 13px; flex-shrink: 0; display: grid; place-items: center; font-size: 18px; }
 .tone-0 { background: #edf0e3; color: #687c42; }.tone-1 { background: #e9eff4; color: #577387; }.tone-2 { background: #f4ebe1; color: #997651; }
 .habit-info { flex: 1; min-width: 0; }.habit-info h3 { font-size: 14px; font-weight: 600; margin: 0; overflow-wrap: anywhere; }.habit-info p { font-size: 11px; color: #839084; margin: 7px 0 0; }

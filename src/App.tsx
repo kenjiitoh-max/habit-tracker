@@ -1,13 +1,21 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { today } from './lib/date'
-import { getRepository } from './lib/storage'
-import type { Habit } from './lib/types'
-
-const repository = getRepository()
+import { getRepository, isDemoMode } from './lib/storage'
+import type { Habit, HabitLog } from './lib/types'
+import { getStreak } from './lib/streak'
+import CheckinControls from './CheckinControls'
+import StatsView from './StatsView'
 
 export default function App() {
+  const [repository] = useState(() => getRepository())
+  const demo = isDemoMode()
+  const normalUrl = new URL(window.location.href)
+  normalUrl.searchParams.delete('demo')
   const [habits, setHabits] = useState<Habit[]>([])
+  const [logs, setLogs] = useState<HabitLog[]>([])
+  const [date, setDate] = useState(() => today())
+  const [view, setView] = useState<'record' | 'stats'>('record')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [editing, setEditing] = useState<Habit | null | undefined>(undefined)
@@ -20,10 +28,24 @@ export default function App() {
 
   useEffect(() => {
     let active = true
-    repository.listHabits().then((items) => { if (active) setHabits(items) })
+    Promise.all([repository.listHabits(), repository.listLogs()]).then(([items, records]) => {
+      if (active) { setHabits(items); setLogs(records) }
+    })
       .catch(() => { if (active) setError('データを読み込めませんでした。ブラウザの保存設定を確認して、再読み込みしてください。') })
       .finally(() => { if (active) setLoading(false) })
     return () => { active = false }
+  }, [repository])
+
+  useEffect(() => {
+    const refreshDate = () => setDate(today())
+    const interval = window.setInterval(refreshDate, 1000)
+    window.addEventListener('focus', refreshDate)
+    document.addEventListener('visibilitychange', refreshDate)
+    return () => {
+      window.clearInterval(interval)
+      window.removeEventListener('focus', refreshDate)
+      document.removeEventListener('visibilitychange', refreshDate)
+    }
   }, [])
 
   useEffect(() => {
@@ -65,6 +87,7 @@ export default function App() {
     setError('')
     try {
       await repository.deleteHabit(deleting.id)
+      setLogs((items) => items.filter((log) => log.habitId !== deleting.id))
       setHabits(await repository.listHabits())
       setDeleting(null)
     } catch { setError('削除できませんでした。もう一度お試しください。') }
@@ -73,10 +96,16 @@ export default function App() {
 
   return (
     <main className="app">
-      <header className="brand"><span className="brand-mark" aria-hidden="true">芽</span> 習慣トラッカー<span className="local-badge">この端末に保存</span></header>
+      <header className="brand"><span className="brand-mark" aria-hidden="true">芽</span> 習慣トラッカー<span className="local-badge">{demo ? 'サンプル体験中' : 'この端末に保存'}</span></header>
+      {demo && <aside className="demo-banner" data-testid="demo-banner"><strong>デモモード（サンプルデータ）</strong><p>実際のデータには触れません。<br />変更は再読み込みでリセットされます。</p><a href={normalUrl.href}>デモを終了して通常モードへ →</a></aside>}
+      <nav className="view-switch" aria-label="表示切り替え">
+        <button data-testid="nav-record" aria-pressed={view === 'record'} onClick={() => setView('record')}>記録</button>
+        <button data-testid="nav-stats" aria-pressed={view === 'stats'} onClick={() => setView('stats')}>グラフ</button>
+      </nav>
+      {view === 'record' ? <>
       <section className="intro">
         <p className="eyebrow">MY DAILY ROUTINE</p>
-        <p className="date">{today().replaceAll('-', '.')} <span>日本時間</span></p>
+        <p className="date" data-testid="today-date">{date.replaceAll('-', '.')} <span>日本時間</span></p>
         <h1>小さな習慣を、<br />自分のペースで。</h1>
         <p className="lead">続けたいことを、ここに集めよう。</p>
         <div className="plant" aria-hidden="true"><span>✦</span><i /><b /></div>
@@ -87,10 +116,18 @@ export default function App() {
           <ul className="habit-list" data-testid="habit-list">
             {habits.map((habit, index) => (
               <li className="habit-card" data-testid="habit-item" key={habit.id}>
-                <span className={`habit-icon tone-${index % 3}`} aria-hidden="true">{habit.name.slice(0, 1)}</span>
+                <div className="habit-card-heading"><span className={`habit-icon tone-${index % 3}`} aria-hidden="true">{habit.name.slice(0, 1)}</span>
                 <div className="habit-info"><h3>{habit.name}</h3><p>{habit.unit ? `単位：${habit.unit}` : '単位なし'}</p></div>
                 <button className="edit-button" data-testid="edit-habit-button" aria-label={`${habit.name}を編集`} onClick={() => openForm(habit)}>編集 <span aria-hidden="true">↗</span></button>
                 <button className="icon-button" data-testid="delete-habit-button" aria-label={`${habit.name}を削除`} onClick={() => { setError(''); setDeleting(habit) }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M4 6h16M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7M14 10v7" /></svg></button>
+                </div>
+                <CheckinControls key={date} habit={habit} date={date}
+                  log={logs.find((log) => log.habitId === habit.id && log.date === date)}
+                  streak={getStreak(habit.id, logs, date)}
+                  onChange={(next) => setLogs((items) => {
+                    const remaining = items.filter((log) => log.habitId !== habit.id || log.date !== date)
+                    return next ? [...remaining, next] : remaining
+                  })} />
               </li>
             ))}
             {!habits.length && <li className="empty" data-testid="empty-state">まだ習慣がありません。<br />まずは、ひとつ追加してみましょう。</li>}
@@ -98,9 +135,10 @@ export default function App() {
         )}
         <button className="add-button" data-testid="add-habit-button" onClick={() => openForm(null)} disabled={loading || (!!error && !showDialog)}><span aria-hidden="true">＋</span> 習慣を追加する</button>
       </section>
+      </> : loading ? <p role="status">読み込み中…</p> : !error ? <StatsView habits={habits} logs={logs} date={date} /> : null}
       {error && !showDialog && <p className="error" role="alert">{error}</p>}
       <aside className="tip"><span aria-hidden="true">✧</span><p>大切なのは、完璧よりも続けること。<br /><strong>今日の小さな一歩が、明日の自分に。</strong></p></aside>
-      <footer>あなたのペースを、大切に。<br /><span>データはこのブラウザだけに保存されます。</span></footer>
+      <footer>あなたのペースを、大切に。<br /><span>{demo ? 'サンプルへの変更は保存されません。' : 'データはこのブラウザだけに保存されます。'}</span></footer>
       <dialog ref={dialog} onCancel={(event) => { event.preventDefault(); closeDialog() }} aria-labelledby="dialog-title" data-testid="habit-dialog">
         {deleting ? <>
           <p className="eyebrow">DELETE HABIT</p><h2 id="dialog-title">習慣を削除しますか？</h2>

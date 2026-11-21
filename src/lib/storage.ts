@@ -1,4 +1,6 @@
 import type { Habit, HabitLog } from './types'
+import { createDemoRepository } from './demoRepository'
+import { today } from './date'
 
 export type HabitInput = Pick<Habit, 'name' | 'unit' | 'color'>
 export interface LogRange { start: string; end: string }
@@ -91,6 +93,16 @@ const repository: HabitRepository = {
   },
 }
 
+let demoRepository: HabitRepository | undefined
+
+export function isDemoMode(): boolean {
+  return new URLSearchParams(window.location.search).get('demo') === '1'
+}
+
 export function getRepository(): HabitRepository {
+  if (isDemoMode()) {
+    demoRepository ??= createDemoRepository(today())
+    return demoRepository
+  }
   return repository
 }
