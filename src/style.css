@@ -59,6 +59,7 @@ h2 { font-size: 17px; font-weight: 600; margin: 0; }
 .yesterday-list > div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 12px 0; font-size: 14px; }
 .yesterday-list > div + div { border-top: 1px solid #edf0e8; }
 .yesterday-list dt, .yesterday-list dd { overflow-wrap: anywhere; }
+.yesterday-list dt { flex-shrink: 0; max-width: 45%; }
 .yesterday-list dd { margin: 0; text-align: end; color: #47664d; }
 .yesterday-back { width: 100%; border-radius: 9px; font-size: 13px; }
 .stats-view { padding-top: 30px; }
@@ -145,3 +146,20 @@ label { display: block; font-size: 13px; margin: 22px 0 10px; font-weight: 500; 
 .body-history { margin-top: 26px; }.body-history h2 { font-size: 15px; }.body-history ul { list-style: none; padding: 0; margin: 16px 0 0; display: grid; gap: 8px; }
 .body-history li { display: flex; align-items: center; gap: 8px; background: white; border: 1px solid #e7e9e0; border-radius: 13px; padding: 6px 8px 6px 14px; }
 .body-item-date { font-size: 12px; color: #6c7c71; }.body-item-values { flex: 1; font-size: 14px; text-align: right; margin-right: 4px; }
+.workout-sets { margin-bottom: 24px; }
+.workout-group + .workout-group, .workout-group + .add-set-form { margin-top: 14px; padding-top: 12px; border-top: 1px solid #edf0e8; }
+.workout-group h3 { font-size: 14px; font-weight: 600; margin: 0 0 6px; overflow-wrap: anywhere; }
+.workout-group ol { list-style: none; padding: 0; margin: 0; }
+.workout-group li { display: flex; align-items: center; gap: 8px; min-height: 44px; font-size: 13px; }
+.workout-group li + li { border-top: 1px dashed #edf0e8; }
+.set-number { color: #7a8679; font-size: 11px; min-width: 4.5em; }
+.set-value { flex: 1; color: #355f47; font-weight: 500; }
+.set-form { width: 100%; }
+.add-set-form label:first-child { margin-top: 0; }
+.set-form select { width: 100%; min-height: 48px; font: inherit; font-size: 16px; padding: 12px; border: 1px solid #d9e0d4; border-radius: 9px; background: #fcfdf9; color: #293e36; }
+.set-fields { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 12px; }
+.set-fields label { margin: 14px 0 8px; }
+.set-fields input { text-align: right; min-height: 48px; }
+.set-actions { display: flex; gap: 8px; margin: 10px 0 6px; }
+.set-actions button { flex: 1; border-radius: 9px; font-size: 13px; }
+.add-set-button { width: 100%; margin-top: 14px; border-radius: 9px; font-size: 14px; }
