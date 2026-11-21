@@ -1,4 +1,6 @@
-import type { Habit, HabitLog } from './types'
+import type { Exercise, Habit, HabitLog } from './types'
+import { createPresets, isExercise, normalizeExercise } from './exercises'
+import type { ExerciseInput } from './exercises'
 import { createDemoRepository } from './demoRepository'
 import { today } from './date'
 
@@ -6,6 +8,9 @@ export type HabitInput = Pick<Habit, 'name' | 'unit' | 'color'>
 export interface LogRange { start: string; end: string }
 
 export interface HabitRepository {
+  listExercises(): Promise<Exercise[]>
+  createExercise(input: ExerciseInput): Promise<Exercise>
+  updateExercise(id: string, changes: Partial<ExerciseInput>): Promise<Exercise>
   listHabits(): Promise<Habit[]>
   createHabit(input: HabitInput): Promise<Habit>
   updateHabit(id: string, changes: Partial<HabitInput & Pick<Habit, 'order'>>): Promise<Habit>
@@ -15,7 +20,7 @@ export interface HabitRepository {
   deleteLog(habitId: string, date: string): Promise<void>
 }
 
-interface StoredData { habits: Habit[]; logs: HabitLog[] }
+interface StoredData { habits: Habit[]; logs: HabitLog[]; exercises: Exercise[] }
 const STORAGE_KEY = 'habit-tracker:v1'
 
 function read(): StoredData {
@@ -27,6 +32,7 @@ function read(): StoredData {
         { id: crypto.randomUUID(), name: '英語トレーニング', unit: '分', createdAt: new Date().toISOString(), order: 1 },
       ],
       logs: [],
+      exercises: createPresets(),
     }
     write(data)
     return data
@@ -35,6 +41,13 @@ function read(): StoredData {
   if (!data || typeof data !== 'object' || !('habits' in data) || !('logs' in data)
     || !Array.isArray(data.habits) || !Array.isArray(data.logs)) {
     throw new Error('保存データを読み込めませんでした。')
+  }
+  if ('exercises' in data) {
+    if (!Array.isArray(data.exercises) || !data.exercises.every(isExercise)) throw new Error('保存データを読み込めませんでした。')
+  } else {
+    const migrated = { ...data, exercises: createPresets() } as StoredData
+    write(migrated)
+    return migrated
   }
   return data as StoredData
 }
@@ -50,6 +63,23 @@ function normalize(input: HabitInput): HabitInput {
 }
 
 const repository: HabitRepository = {
+  async listExercises() { return read().exercises },
+  async createExercise(input) {
+    const normalized = normalizeExercise(input)
+    const data = read()
+    const exercise = { ...normalized, id: crypto.randomUUID(), createdAt: new Date().toISOString() }
+    data.exercises.push(exercise)
+    write(data)
+    return exercise
+  },
+  async updateExercise(id, changes) {
+    const data = read()
+    const index = data.exercises.findIndex((item) => item.id === id)
+    if (index === -1) throw new Error('種目が見つかりません。')
+    data.exercises[index] = { ...data.exercises[index], ...normalizeExercise({ ...data.exercises[index], ...changes }) }
+    write(data)
+    return data.exercises[index]
+  },
   async listHabits() {
     return read().habits.sort((a, b) => a.order - b.order)
   },

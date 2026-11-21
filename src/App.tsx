@@ -6,6 +6,7 @@ import type { Habit, HabitLog } from './lib/types'
 import { getStreak } from './lib/streak'
 import CheckinControls from './CheckinControls'
 import StatsView from './StatsView'
+import ExercisesView from './ExercisesView'
 
 export default function App() {
   const [repository] = useState(() => getRepository())
@@ -15,7 +16,7 @@ export default function App() {
   const [habits, setHabits] = useState<Habit[]>([])
   const [logs, setLogs] = useState<HabitLog[]>([])
   const [date, setDate] = useState(() => today())
-  const [view, setView] = useState<'record' | 'stats'>('record')
+  const [view, setView] = useState<'record' | 'stats' | 'exercises'>('record')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [editing, setEditing] = useState<Habit | null | undefined>(undefined)
@@ -101,6 +102,7 @@ export default function App() {
       <nav className="view-switch" aria-label="表示切り替え">
         <button data-testid="nav-record" aria-pressed={view === 'record'} onClick={() => setView('record')}>記録</button>
         <button data-testid="nav-stats" aria-pressed={view === 'stats'} onClick={() => setView('stats')}>グラフ</button>
+        <button aria-pressed={view === 'exercises'} onClick={() => setView('exercises')}>種目</button>
       </nav>
       {view === 'record' ? <>
       <section className="intro">
@@ -135,7 +137,7 @@ export default function App() {
         )}
         <button className="add-button" data-testid="add-habit-button" onClick={() => openForm(null)} disabled={loading || (!!error && !showDialog)}><span aria-hidden="true">＋</span> 習慣を追加する</button>
       </section>
-      </> : loading ? <p role="status">読み込み中…</p> : !error ? <StatsView habits={habits} logs={logs} date={date} /> : null}
+      </> : view === 'exercises' ? <ExercisesView repository={repository} /> : loading ? <p role="status">読み込み中…</p> : !error ? <StatsView habits={habits} logs={logs} date={date} /> : null}
       {error && !showDialog && <p className="error" role="alert">{error}</p>}
       <aside className="tip"><span aria-hidden="true">✧</span><p>大切なのは、完璧よりも続けること。<br /><strong>今日の小さな一歩が、明日の自分に。</strong></p></aside>
       <footer>あなたのペースを、大切に。<br /><span>{demo ? 'サンプルへの変更は保存されません。' : 'データはこのブラウザだけに保存されます。'}</span></footer>
