@@ -221,4 +221,6 @@ label { display: block; font-size: 13px; margin: 22px 0 10px; font-weight: 500; 
 .streak-break p { font-size: 14px; line-height: 1.8; }
 .streak-break ul { padding-left: 1.25em; font-size: 14px; line-height: 1.9; }
 .streak-break small { font-size: 12px; line-height: 1.7; }
+.comeback-hint { font-weight: 600; }
+.comeback-bonus { margin: 16px 0; padding: 14px 16px; border: 1px solid #f0c36d; border-radius: 13px; background: #fff6df; color: #5b4310; font-size: 14px; line-height: 1.8; overflow-wrap: anywhere; }
 .streak-hall { font-weight: 600; border-top: 1px solid #c8dece; padding-top: 12px; }
