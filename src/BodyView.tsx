@@ -2,16 +2,16 @@ import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import BodyTrendChart from './BodyTrendChart'
 import { getBodyRepository } from './lib/bodyStorage'
-import type { BodyMeasurement } from './lib/bodyStorage'
+import type { BodyMeasurement, BodyRepository } from './lib/bodyStorage'
 import BodyTargets from './BodyTargets'
 
-interface Props { date: string }
+interface Props { date: string; repository?: BodyRepository }
 const toInput = (value?: number) => value === undefined ? '' : String(value)
 const parse = (value: string) => value.trim() === '' ? undefined : Number(value)
 const formatDate = (date: string) => date.replaceAll('-', '.')
 
-export default function BodyView({ date }: Props) {
-  const [repository] = useState(() => getBodyRepository())
+export default function BodyView({ date, repository: providedRepository }: Props) {
+  const [repository] = useState(() => providedRepository ?? getBodyRepository())
   const [items, setItems] = useState<BodyMeasurement[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')

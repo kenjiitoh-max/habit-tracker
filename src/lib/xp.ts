@@ -1,15 +1,29 @@
 import type { StudyDays } from './studyTime'
 import type { WorkoutSet } from './workoutSets'
+import type { BodyMeasurement } from './bodyStorage'
+import { addDays } from './date'
 
 export const XP_STORAGE_KEY = 'habit-tracker:xp:v1'
 export const STUDY_XP = 10
 export const WORKOUT_SET_XP = 10
+export const BODY_XP = 5
 export const COMEBACK_XP = 30
 export const XP_PER_LEVEL = 100
 export const XP_CHANGED = 'habit-tracker:xp-changed'
 export interface XpData { totalXp: number; awarded: Record<string, number> }
 const comebackKey = (date: string) => `comeback:${date}`
 const empty = (): XpData => ({ totalXp: 0, awarded: {} })
+
+function isBodyMeasurement(value: unknown): value is BodyMeasurement {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+  const measurement = value as BodyMeasurement
+  if (typeof measurement.date !== 'string') return false
+  try { addDays(measurement.date, 0) } catch { return false }
+  const validNumber = (value: unknown, max: number) => typeof value === 'number' && Number.isFinite(value) && value > 0 && value < max
+  return (measurement.weightKg !== undefined || measurement.bodyFatPercent !== undefined)
+    && (measurement.weightKg === undefined || validNumber(measurement.weightKg, 500))
+    && (measurement.bodyFatPercent === undefined || validNumber(measurement.bodyFatPercent, 100))
+}
 
 function readStored(): XpData {
   try {
@@ -43,9 +57,12 @@ export function createXpRepository(demo = false) {
       if (minutes >= 1) award(`study:${date}:${service}`, STUDY_XP)
     },
     awardSet(id: string) { award(`set:${id}`, WORKOUT_SET_XP) },
+    awardBody(measurement: BodyMeasurement) {
+      if (isBodyMeasurement(measurement)) award(`body:${measurement.date}`, BODY_XP)
+    },
     awardComeback(date: string) { award(comebackKey(date), COMEBACK_XP) },
     hasComeback(date: string) { return Object.hasOwn(read().awarded, comebackKey(date)) },
-    backfill(days: StudyDays, sets: WorkoutSet[]) {
+    backfill(days: StudyDays, sets: WorkoutSet[], measurements: BodyMeasurement[] = []) {
       const data = read()
       let changed = false
       const add = (key: string, amount: number) => {
@@ -60,6 +77,9 @@ export function createXpRepository(demo = false) {
         }
       }
       for (const set of sets) add(`set:${set.id}`, WORKOUT_SET_XP)
+      for (const measurement of measurements) {
+        if (isBodyMeasurement(measurement)) add(`body:${measurement.date}`, BODY_XP)
+      }
       if (!changed) return
       if (demo) memory = data
       else localStorage.setItem(XP_STORAGE_KEY, JSON.stringify(data))

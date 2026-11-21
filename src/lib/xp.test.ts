@@ -2,8 +2,20 @@ import { afterEach, expect, it, vi } from 'vitest'
 import { COMEBACK_XP, createXpRepository, getLevel, XP_CHANGED, XP_STORAGE_KEY } from './xp'
 import { createStudyTimeRepository } from './studyTime'
 import { createWorkoutSetRepository, WORKOUT_SETS_STORAGE_KEY } from './workoutSets'
+import { getBodyRepository } from './bodyStorage'
 
 afterEach(() => vi.restoreAllMocks())
+
+it('skips invalid body entries in both direct awards and backfill while awarding valid measurements', () => {
+  const xp = createXpRepository()
+  const invalid = JSON.parse('[null,42,"bad",[],{}, {"date":"2026-02-30","weightKg":70}, {"date":"2026-01-01","weightKg":"70"}, {"date":"2026-01-01","weightKg":0}, {"date":"2026-01-01","bodyFatPercent":100}, {"weightKg":70}]')
+  for (const measurement of invalid) xp.awardBody(measurement)
+  xp.backfill({}, [], invalid)
+  expect(xp.read()).toEqual({ totalXp: 0, awarded: {} })
+  expect(localStorage.getItem(XP_STORAGE_KEY)).toBeNull()
+  xp.backfill({}, [], [...invalid, { date: '2026-01-01', weightKg: 70 }])
+  expect(xp.read()).toEqual({ totalXp: 5, awarded: { 'body:2026-01-01': 5 } })
+})
 
 it('awards study XP only from one minute, including during backfill', () => {
   const xp = createXpRepository()
@@ -68,19 +80,29 @@ it('treats missing and corrupt XP as empty without writing on read', () => {
   }
 })
 
-it('backfills historical records once and leaves all existing keys byte-for-byte unchanged', () => {
+it('backfills historical records once and leaves all existing keys byte-for-byte unchanged', async () => {
   const records = {
     'habit-tracker:v1': ' {"habits":[], "logs":[]} ',
-    'habit-tracker:body:v1': '{ "measurements": [] }',
+    'habit-tracker:body:v1': '{ "measurements": [{"date":"2025-01-01","weightKg":70,"bodyFatPercent":20},{"date":"2025-01-02","bodyFatPercent":19}] }',
     'habit-tracker:body-targets:v1': '{ "weightKg": 68 }',
     'habit-tracker:study-time:v1': '{ "2025-01-01": {"shadoten":20,"spiful":0}, "2025-01-02":{"spiful":5} }',
     [WORKOUT_SETS_STORAGE_KEY]: '{ "sets": [{"id":"old","date":"2025-01-01","exerciseId":"a","reps":10,"createdAt":"x"}] }',
   }
   for (const [key, raw] of Object.entries(records)) localStorage.setItem(key, raw)
   const xp = createXpRepository()
-  for (let i = 0; i < 2; i++) xp.backfill(createStudyTimeRepository().listDays(), createWorkoutSetRepository().listAllSets())
-  expect(xp.read().totalXp).toBe(30)
+  localStorage.setItem(XP_STORAGE_KEY, JSON.stringify({ totalXp: 50, awarded: { 'body:2025-01-01': 5, 'other': 45 } }))
+  for (let i = 0; i < 2; i++) xp.backfill(createStudyTimeRepository().listDays(), createWorkoutSetRepository().listAllSets(), await getBodyRepository().listMeasurements())
+  expect(xp.read().totalXp).toBe(85)
+  expect(xp.read().awarded).toMatchObject({ other: 45, 'body:2025-01-01': 5, 'body:2025-01-02': 5 })
   for (const [key, raw] of Object.entries(records)) expect(localStorage.getItem(key)).toBe(raw)
+})
+
+it('ignores empty body records during awards and backfill', () => {
+  const xp = createXpRepository()
+  xp.awardBody({ date: '2026-01-01' })
+  xp.backfill({}, [], [{ date: '2026-01-01' }])
+  expect(xp.read()).toEqual({ totalXp: 0, awarded: {} })
+  expect(localStorage.getItem(XP_STORAGE_KEY)).toBeNull()
 })
 
 it('retries a saved set after XP write failure without duplicating it', () => {

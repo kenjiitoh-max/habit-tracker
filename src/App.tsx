@@ -16,6 +16,7 @@ import YesterdayRecords from './YesterdayRecords'
 import WorkoutSets from './WorkoutSets'
 import WorkoutStats from './WorkoutStats'
 import { createXpRepository } from './lib/xp'
+import { getBodyRepository } from './lib/bodyStorage'
 import { createStreakMilestoneRepository } from './lib/streakMilestones'
 import XpCard from './XpCard'
 import HomeSummary from './HomeSummary'
@@ -34,6 +35,7 @@ export default function App() {
   const [exercises, setExercises] = useState<Exercise[]>([])
   const [date, setDate] = useState(() => today())
   const [xp] = useState(() => createXpRepository(demo))
+  const [bodyRepository] = useState(() => getBodyRepository(xp))
   const [milestones] = useState(() => createStreakMilestoneRepository(demo))
   const [studyTimeRepository] = useState(() => createStudyTimeRepository(demo ? date : undefined, xp))
   const [workoutRepository] = useState(() => createWorkoutSetRepository(demo ? date : undefined, xp))
@@ -140,7 +142,7 @@ export default function App() {
         <button data-testid="nav-body" aria-pressed={view === 'body'} onClick={() => setView('body')}>体の記録</button>
       </nav>
       {view === 'record' ? <>
-      <XpCard repository={xp} studyRepository={studyTimeRepository} workoutRepository={workoutRepository} />
+      <XpCard repository={xp} studyRepository={studyTimeRepository} workoutRepository={workoutRepository} bodyRepository={bodyRepository} />
       <HomeSummary habits={habits} logs={logs} date={date} studyRepository={studyTimeRepository} workoutRepository={workoutRepository} loading={loading} error={!!error} exercises={exercises} xpRepository={xp} milestoneRepository={milestones} />
       <DailyWrapUp habits={habits} logs={logs} exercises={exercises} date={date} studyRepository={studyTimeRepository} workoutRepository={workoutRepository} xpRepository={xp} loading={loading} error={!!error} />
       <HomeBody />
@@ -172,7 +174,7 @@ export default function App() {
         )}
         <button className="add-button" data-testid="add-habit-button" onClick={() => openForm(null)} disabled={loading || (!!error && !showDialog)}><span aria-hidden="true">＋</span> 習慣を追加する</button>
       </section>
-      </> : view === 'exercises' ? <ExercisesView repository={repository} /> : view === 'body' ? <BodyView date={date} /> : loading ? <p role="status">読み込み中…</p> : !error ? (
+      </> : view === 'exercises' ? <ExercisesView repository={repository} /> : view === 'body' ? <BodyView date={date} repository={bodyRepository} /> : loading ? <p role="status">読み込み中…</p> : !error ? (
         view === 'yesterday' ? <YesterdayRecords key={yesterday} date={yesterday} habits={habits} logs={logs}
           studyTimeRepository={studyTimeRepository} repository={repository} workoutRepository={workoutRepository} onBack={() => setView('record')} /> :
           <StatsView habits={habits} logs={logs} date={date}>

@@ -13,6 +13,9 @@ test('体重・体脂肪率を別々に記録・修正でき、ホームや習�
   await page.getByTestId('body-weight-input').fill('68.4')
   await page.getByTestId('body-save-button').click()
   await expect(page.getByTestId('body-item')).toHaveText(/2026\.01\.02\s*68\.4 kg ／ —/)
+  await page.getByTestId('nav-record').click()
+  await expect(page.getByTestId('total-xp')).toHaveText('累計 5 XP')
+  await page.getByTestId('nav-body').click()
   await page.getByRole('button', { name: '目標を設定・変更' }).click()
   await page.getByLabel('目標体重（kg）').fill('66.1')
   await page.getByLabel('目標体脂肪率（%）').fill('17')
@@ -27,6 +30,7 @@ test('体重・体脂肪率を別々に記録・修正でき、ホームや習�
   await expect(page.getByTestId('habit-item')).toHaveCount(2)
   await expect(page.getByText('68.4')).toHaveCount(0)
   await expect(page.getByTestId('streak-count').first()).toHaveText('0日連続')
+  await expect(page.getByTestId('total-xp')).toHaveText('累計 10 XP')
   await page.getByTestId('nav-body').click()
   await expect(page.getByTestId('target-weightKg')).toContainText('目標まで あと 2.3 kg')
   await page.getByRole('button', { name: '2026.01.02の記録を修正' }).click()
@@ -37,6 +41,8 @@ test('体重・体脂肪率を別々に記録・修正でき、ホームや習�
   await expect(page.getByTestId('body-item').first()).toContainText('68.1 kg ／ 17.9%')
   await expect(page.getByTestId('body-item').last()).toContainText('— ／ 18.3%')
   expect(await page.evaluate(() => localStorage.getItem('habit-tracker:v1'))).toBe(habits)
+  await page.getByTestId('nav-record').click()
+  await expect(page.getByTestId('total-xp')).toHaveText('累計 10 XP')
 })
 
 test('デモでは架空の測定値だけを使い、実データに触れない', async ({ page }) => {
