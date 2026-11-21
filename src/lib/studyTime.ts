@@ -5,9 +5,9 @@ export const studyServices = {
   spiful: 'スピフル',
 } as const
 
-type StudyService = keyof typeof studyServices
+export type StudyService = keyof typeof studyServices
 type StudyMinutes = Partial<Record<StudyService, number>>
-type StudyDays = Record<string, StudyMinutes>
+export type StudyDays = Record<string, StudyMinutes>
 
 const STORAGE_KEY = 'habit-tracker:study-time:v1'
 
@@ -25,10 +25,17 @@ export function createStudyTimeRepository(demoDate?: string) {
   let demoDays: StudyDays = demoDate ? {
     [demoDate]: { shadoten: 20, spiful: 10 },
     [addDays(demoDate, -1)]: { shadoten: 25, spiful: 15 },
+    [addDays(demoDate, -2)]: { shadoten: 0, spiful: 10 },
+    [addDays(demoDate, -4)]: { shadoten: 30, spiful: 20 },
+    [addDays(demoDate, -8)]: { shadoten: 15, spiful: 15 },
+    [addDays(demoDate, -15)]: { shadoten: 25, spiful: 10 },
+    [addDays(demoDate, -36)]: { shadoten: 10, spiful: 15 },
+    [addDays(demoDate, -62)]: { shadoten: 15, spiful: 5 },
   } : {}
   const read = () => demoDate ? demoDays : readStoredDays()
 
   return {
+    listDays: read,
     getMinutes(date: string): StudyMinutes {
       return read()[date] ?? {}
     },

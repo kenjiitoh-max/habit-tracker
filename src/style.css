@@ -78,6 +78,16 @@ h2 { font-size: 17px; font-weight: 600; margin: 0; }
 .stats-explanation { font-size: 10px; line-height: 1.8; color: #7c8974; margin: 0; }
 .daily-details { font-size: 11px; color: #526b4d; margin-top: 14px; }.daily-details summary { cursor: pointer; padding: 6px 0; }
 .daily-details table { width: 100%; margin-top: 8px; border-collapse: collapse; text-align: right; }.daily-details th, .daily-details td { padding: 7px 3px; border-bottom: 1px solid #edf0e8; font-weight: 400; }.daily-details caption { text-align: left; padding: 6px 0; }
+.study-stats { margin: 22px 0; }
+.study-stats .period-switch { margin: 12px 0; }
+.study-stats .stats-range, .study-stats .stats-explanation { color: #596955; }
+.study-stats-totals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 10px 0; }
+.study-stats-totals > div { padding: 9px 10px; border-radius: 9px; background: #f1f5ec; }
+.study-stats-totals dt { font-size: 11px; color: #596955; }
+.study-stats-totals dd { margin: 4px 0 0; font-size: 19px; font-weight: 600; overflow-wrap: anywhere; }
+.study-stats-legacy { color: #74501c; font-size: 11px; line-height: 1.6; overflow-wrap: anywhere; }
+.study-stats .daily-details th:first-child { text-align: left; }
+.study-stats .daily-details { overflow-wrap: anywhere; }
 .habit-rates { margin-top: 26px; }.habit-rates h2 { font-size: 15px; }.habit-rates ul { list-style: none; padding: 0; margin: 16px 0 0; display: grid; gap: 12px; }.habit-rates li { background: white; border: 1px solid #e7e9e0; border-radius: 13px; padding: 15px; }.rate-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }.rate-heading h3 { font-size: 13px; font-weight: 500; margin: 0; overflow-wrap: anywhere; }.rate-heading strong { font-size: 18px; font-weight: 500; }.rate-track { background: #edf1e7; height: 6px; border-radius: 6px; overflow: hidden; margin-top: 12px; }.rate-track span { display: block; height: 100%; background: #91ae7e; border-radius: inherit; }.habit-rates li p { font-size: 10px; color: #7c8974; margin: 7px 0 0; }
 .habit-icon { width: 42px; height: 46px; border-radius: 13px; flex-shrink: 0; display: grid; place-items: center; font-size: 18px; }
 .tone-0 { background: #edf0e3; color: #687c42; }.tone-1 { background: #e9eff4; color: #577387; }.tone-2 { background: #f4ebe1; color: #997651; }

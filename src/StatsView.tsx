@@ -1,13 +1,14 @@
 import { useState } from 'react'
+import type { ReactNode } from 'react'
 import { getPeriodStats } from './lib/stats'
 import type { StatsPeriod } from './lib/stats'
 import type { Habit, HabitLog } from './lib/types'
 
-interface Props { habits: Habit[]; logs: HabitLog[]; date: string }
+interface Props { habits: Habit[]; logs: HabitLog[]; date: string; children?: ReactNode }
 const formatPercent = (percent: number | null) => percent === null ? '—' : `${Math.round(percent)}%`
 const shortDate = (date: string) => `${Number(date.slice(5, 7))}/${Number(date.slice(8))}`
 
-export default function StatsView({ habits, logs, date }: Props) {
+export default function StatsView({ habits, logs, date, children }: Props) {
   const [period, setPeriod] = useState<StatsPeriod>(7)
   const { daily, perHabit, summary } = getPeriodStats(habits, logs, date, period)
   const step = 264 / period
@@ -17,6 +18,7 @@ export default function StatsView({ habits, logs, date }: Props) {
       <p className="eyebrow">YOUR PROGRESS</p>
       <h1 id="stats-heading">積み重ねを、見える形に。</h1>
       <p className="lead">小さな一歩を、振り返ってみよう。</p>
+      {children}
       <div className="period-switch" aria-label="集計期間">
         <button data-testid="stats-period-week" aria-pressed={period === 7} onClick={() => setPeriod(7)}>週間</button>
         <button data-testid="stats-period-month" aria-pressed={period === 30} onClick={() => setPeriod(30)}>月間</button>
