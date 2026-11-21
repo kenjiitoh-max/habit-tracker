@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { bodyParts } from './lib/exercises'
+import { detectPersonalBests } from './lib/personalBests'
+import type { PersonalBest } from './lib/personalBests'
 import type { HabitRepository } from './lib/storage'
 import type { BodyPart, Exercise } from './lib/types'
 import { formatSet, groupByExercise } from './lib/workoutSets'
@@ -11,6 +13,13 @@ interface Props {
   repository: HabitRepository
   workoutRepository: WorkoutSetRepository
 }
+
+const bestMetrics = {
+  weight: { label: '最大重量', unit: ' kg' },
+  reps: { label: '最大回数', unit: '回' },
+  volume: { label: '総挙上量', unit: ' kg' },
+}
+const bestNumber = new Intl.NumberFormat('ja-JP', { maximumSignificantDigits: 15 })
 
 function SetFields({ idPrefix, bodyweight, weight, reps, setWeight, setReps, disabled }: {
   idPrefix: string
@@ -53,6 +62,7 @@ export default function WorkoutSets({ date, repository, workoutRepository }: Pro
   const [editing, setEditing] = useState<WorkoutSet | null>(null)
   const [editWeight, setEditWeight] = useState('')
   const [editReps, setEditReps] = useState('')
+  const [bests, setBests] = useState<{ name: string; records: PersonalBest[] } | null>(null)
   const [error, setError] = useState('')
   const [loadError, setLoadError] = useState(false)
   const [previous, setPrevious] = useState<WorkoutSet>()
@@ -91,6 +101,14 @@ export default function WorkoutSets({ date, repository, workoutRepository }: Pro
   const isBodyweightSet = (set: WorkoutSet) => set.weightKg === undefined
   const selected = exerciseById.get(exerciseId)
 
+  function refreshAfterSave(history: WorkoutSet[], saved: WorkoutSet) {
+    setSets(workoutRepository.listSets(date))
+    const exercise = exerciseById.get(saved.exerciseId)
+    if (!exercise) return
+    const records = detectPersonalBests(history.filter((set) => set.exerciseId === saved.exerciseId), saved, exercise.bodyweight)
+    setBests(records.length ? { name: exercise.name, records } : null)
+  }
+
   function add(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!selected || !event.currentTarget.checkValidity()) return
@@ -103,9 +121,11 @@ export default function WorkoutSets({ date, repository, workoutRepository }: Pro
     setBusy(true)
     pendingId.current ??= crypto.randomUUID()
     setError('')
+    setBests(null)
     try {
-      await workoutRepository.addSet(date, input, selected.bodyweight, pendingId.current)
-      setSets(workoutRepository.listSets(date))
+      const history = workoutRepository.listAllSets()
+      const saved = await workoutRepository.addSet(date, input, selected.bodyweight, pendingId.current)
+      refreshAfterSave(history, saved)
       pendingId.current = null
     } catch { setError('セットを保存できませんでした。入力内容やブラウザの保存設定を確認してください。') }
     finally { saving.current = false; setBusy(false) }
@@ -128,15 +148,18 @@ export default function WorkoutSets({ date, repository, workoutRepository }: Pro
     if (!editing || !event.currentTarget.checkValidity()) return
     const bodyweight = isBodyweightSet(editing)
     setError('')
+    setBests(null)
     try {
-      workoutRepository.updateSet(editing.id, toInput(editing.exerciseId, editWeight, editReps, bodyweight), bodyweight)
-      setSets(workoutRepository.listSets(date))
+      const history = workoutRepository.listAllSets()
+      const saved = workoutRepository.updateSet(editing.id, toInput(editing.exerciseId, editWeight, editReps, bodyweight), bodyweight)
+      refreshAfterSave(history, saved)
       setEditing(null)
     } catch { setError('セットを保存できませんでした。入力内容やブラウザの保存設定を確認してください。') }
   }
 
   function remove(set: WorkoutSet) {
     setError('')
+    setBests(null)
     try {
       workoutRepository.deleteSet(set.id)
       setSets(workoutRepository.listSets(date))
@@ -145,10 +168,26 @@ export default function WorkoutSets({ date, repository, workoutRepository }: Pro
   }
 
   const groups = sets ? groupByExercise(sets) : []
+  const improved = bests?.records.some(({ kind }) => kind === 'improved')
 
   return (
     <section className="workout-sets" aria-labelledby="workout-sets-heading">
       <div className="section-heading"><h2 id="workout-sets-heading">今日の筋トレ</h2><span className="small-note">セットごとに記録</span></div>
+      <div className="workout-best-status" role="status" aria-atomic="true">
+        {bests && <div
+          key={bests.records.map(({ metric, value }) => `${metric}:${value}`).join(',')}
+          className={improved ? 'workout-best workout-best-improved' : 'workout-best'}
+        >
+          <strong>{improved ? '🏆 自己ベスト更新！' : '初めての記録'}</strong>
+          <p>{bests.name}</p>
+          <ul>{bests.records.map(({ metric, value, kind }) => (
+            <li key={metric}>
+              {bestMetrics[metric].label}：{bestNumber.format(value)}{bestMetrics[metric].unit}
+              {improved && kind === 'first' && <small> 初回</small>}
+            </li>
+          ))}</ul>
+        </div>}
+      </div>
       <div className="habit-card">
         {sets === null ? <p className="error" role="alert">筋トレの記録を読み込めませんでした。再読み込みしてください。</p> : <>
           {groups.map(([id, items]) => {
