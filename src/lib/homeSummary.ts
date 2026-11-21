@@ -11,7 +11,8 @@ export function getHomeSummary(habits: Habit[], logs: HabitLog[], days: StudyDay
     ...(Object.keys(studyServices) as StudyService[]).map((service) => ({
       label: studyServices[service], target: `study-${service}`, done: recorded(days[date]?.[service]),
     })),
-    ...habits.map((habit) => ({ label: habit.name, target: `habit-${habit.id}`, done: logs.some((log) => log.habitId === habit.id && log.date === date && log.done) })),
+    ...habits.filter(({ name, unit }) => name !== '筋トレ' && !(name === '英語トレーニング' && unit === '分'))
+      .map((habit) => ({ label: habit.name, target: `habit-${habit.id}`, done: logs.some((log) => log.habitId === habit.id && log.date === date && log.done) })),
   ]
   const activityDates = new Set([
     ...logs.filter((log) => log.done && habits.some((habit) => habit.id === log.habitId)).map((log) => log.date),
