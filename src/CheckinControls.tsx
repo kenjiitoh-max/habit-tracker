@@ -14,6 +14,7 @@ export default function CheckinControls({ habit, date, log, streak, onChange }: 
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const saving = useRef(false)
+  const valueInput = useRef<HTMLInputElement>(null)
 
   async function persist(next: HabitLog | undefined) {
     if (saving.current) return
@@ -50,14 +51,19 @@ export default function CheckinControls({ habit, date, log, streak, onChange }: 
         <button className="checkin-toggle" data-testid="checkin-toggle" aria-pressed={!!log?.done}
           aria-label={`${habit.name}：今日やった`} disabled={busy}
           onPointerDown={(event) => event.preventDefault()}
-          onClick={() => void persist(log?.done ? undefined : { habitId: habit.id, date, done: true })}>
+          onClick={() => {
+            if (log?.done) return void persist(undefined)
+            const input = valueInput.current
+            const value = input && input.value !== '' && input.validity.valid ? input.valueAsNumber : log?.value
+            void persist({ habitId: habit.id, date, done: true, ...(value === undefined ? {} : { value }) })
+          }}>
           <span aria-hidden="true">{log?.done ? '✓' : '○'}</span> 今日やった
         </button>
         <span className="streak" data-testid="streak-count">{streak}日連続</span>
       </div>
       <div className="value-row">
         <label htmlFor={`value-${habit.id}`}>今日の数値 <span>任意</span></label>
-        <input key={`${log?.done}-${log?.value}`} id={`value-${habit.id}`} data-testid="checkin-value-input"
+        <input ref={valueInput} key={`${log?.done}-${log?.value}`} id={`value-${habit.id}`} data-testid="checkin-value-input"
           type="number" min="0" step="any" inputMode="decimal" placeholder="—"
           aria-label={`${habit.name}の今日の数値${habit.unit ? `（${habit.unit}）` : ''}`}
           defaultValue={log?.value ?? ''} disabled={busy}

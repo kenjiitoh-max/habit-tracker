@@ -17,6 +17,18 @@ async function firstCard() {
 }
 
 describe('daily check-in', () => {
+  it('keeps a typed value when tapping the toggle before leaving the input', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    const card = await firstCard()
+    await user.type(card.getByTestId('checkin-value-input'), '25')
+    await user.click(card.getByTestId('checkin-toggle'))
+    expect(card.getByTestId('checkin-toggle')).toHaveAttribute('aria-pressed', 'true')
+    const [habit] = await getRepository().listHabits()
+    await waitFor(async () => expect(await getRepository().listLogs({ start: today(), end: today() }))
+      .toEqual([{ habitId: habit.id, date: today(), done: true, value: 25 }]))
+  })
+
   it('toggles today, keeps yesterday’s streak, and persists across remounts', async () => {
     const user = userEvent.setup()
     const repo = getRepository()
