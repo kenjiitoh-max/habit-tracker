@@ -65,6 +65,36 @@ npm run build     # dist/ に静的サイトを出力
 
 ログインやサーバーへの送信はありません。データは使用中のブラウザのlocalStorageに保存されます。別端末とは同期されず、ブラウザのデータを消すと失われます。
 
+## テスト実行方法
+
+```sh
+npm ci
+npm test -- --run       # Vitest（ユニット・コンポーネント）
+npx playwright install --with-deps chromium # 初回のブラウザ・OS依存関係準備
+npm run build
+npm run test:e2e        # 本番ビルドをvite previewで起動して検証
+npx playwright show-report # HTMLレポートを確認
+```
+
+E2EはChromiumのPixel 7プロファイル・日本時間で実行します。習慣の追加／編集／削除確認、数値・チェックの再読み込み、ストリーク、週間／月間グラフ、デモの実データ分離を検証します。
+米国ロサンゼルス時間の専用テストでは、JST午前0時の日付・記録の切り替わりも確認します。テストごとにブラウザの保存領域を分離するため、普段のChromeのデータには触れません。
+E2E実行前にポート4173を空けてください。既存サーバーの流用はせず、`http://localhost:4173/habit-tracker/` で本番previewを自動起動・終了します。アプリを変更したら再度buildしてください。
+
+### CI
+
+全ブランチ向けの `pull_request`（積み上げPRを含む）と `main` へのpushで、Node.js 24上でlint・型チェック・Vitest・build・Playwrightを実行します。同じrefの古い実行はキャンセルします。
+失敗時はActionsのArtifactsから `playwright-report` を取得できます（HTMLレポート・スクリーンショット・トレース、7日間保持）。Pagesへの公開は別のDeployワークフローです。
+
+### QA用data-testid
+
+- ナビゲーション：`nav-record`, `nav-stats`, `today-date`
+- 習慣：`habit-list`, `habit-item`, `add-habit-button`, `habit-name-input`, `habit-unit-input`, `save-habit-button`, `edit-habit-button`, `delete-habit-button`, `confirm-delete-button`
+- 記録：`checkin-toggle`, `checkin-value-input`, `streak-count`
+- グラフ：`stats-view`, `stats-period-week`, `stats-period-month`, `stats-chart`, `habit-rate`
+- デモ：`demo-banner`
+
+`habit-item` 内のtestidは各カードに繰り返し存在します。カードを選んでからその中の要素を操作してください。
+
 ## 構成
 
 - `src/App.tsx`：習慣一覧と追加・編集・削除画面
@@ -73,4 +103,3 @@ npm run build     # dist/ に静的サイトを出力
 - `src/lib/storage.ts`：唯一の永続化窓口。非同期 `HabitRepository` と `getRepository()` により将来の実装差し替えに対応
 
 Vite + React + TypeScript、Vitest、ESLintを使用。公開パスは `/habit-tracker/` です。
-E2E/CIは今後追加予定です。

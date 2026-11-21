@@ -99,13 +99,13 @@ export default function App() {
       <header className="brand"><span className="brand-mark" aria-hidden="true">芽</span> 習慣トラッカー<span className="local-badge">{demo ? 'サンプル体験中' : 'この端末に保存'}</span></header>
       {demo && <aside className="demo-banner" data-testid="demo-banner"><strong>デモモード（サンプルデータ）</strong><p>実際のデータには触れません。<br />変更は再読み込みでリセットされます。</p><a href={normalUrl.href}>デモを終了して通常モードへ →</a></aside>}
       <nav className="view-switch" aria-label="表示切り替え">
-        <button aria-pressed={view === 'record'} onClick={() => setView('record')}>記録</button>
-        <button aria-pressed={view === 'stats'} onClick={() => setView('stats')}>グラフ</button>
+        <button data-testid="nav-record" aria-pressed={view === 'record'} onClick={() => setView('record')}>記録</button>
+        <button data-testid="nav-stats" aria-pressed={view === 'stats'} onClick={() => setView('stats')}>グラフ</button>
       </nav>
       {view === 'record' ? <>
       <section className="intro">
         <p className="eyebrow">MY DAILY ROUTINE</p>
-        <p className="date">{date.replaceAll('-', '.')} <span>日本時間</span></p>
+        <p className="date" data-testid="today-date">{date.replaceAll('-', '.')} <span>日本時間</span></p>
         <h1>小さな習慣を、<br />自分のペースで。</h1>
         <p className="lead">続けたいことを、ここに集めよう。</p>
         <div className="plant" aria-hidden="true"><span>✦</span><i /><b /></div>
