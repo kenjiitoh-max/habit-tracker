@@ -19,6 +19,19 @@ it('migrates v1 without changing habits or logs and saves only once', async () =
   write.mockRestore()
 })
 
+it('keeps old records readable when the migration cannot be saved', async () => {
+  const old = { habits: [{ id: 'old', name: '筋トレ', order: 0, createdAt: '2025-01-01' }], logs: [{ habitId: 'old', date: '2026-01-01', done: true }] }
+  const raw = JSON.stringify(old)
+  localStorage.setItem(key, raw)
+  const write = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw Error('quota') })
+  const repo = getRepository()
+  expect(await repo.listHabits()).toEqual(old.habits)
+  expect(await repo.listLogs()).toEqual(old.logs)
+  expect(await repo.listExercises()).toEqual(createPresets())
+  write.mockRestore()
+  expect(localStorage.getItem(key)).toBe(raw)
+})
+
 it('preserves intentionally empty exercises and rejects corrupt data without overwriting', async () => {
   localStorage.setItem(key, JSON.stringify({ habits: [], logs: [], exercises: [] }))
   expect(await getRepository().listExercises()).toEqual([])

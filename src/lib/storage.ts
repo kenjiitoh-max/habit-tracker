@@ -46,7 +46,11 @@ function read(): StoredData {
     if (!Array.isArray(data.exercises) || !data.exercises.every(isExercise)) throw new Error('保存データを読み込めませんでした。')
   } else {
     const migrated = { ...data, exercises: createPresets() } as StoredData
-    write(migrated)
+    try {
+      write(migrated)
+    } catch {
+      // 保存できなくても既存の記録は読めるようにし、次回の読み込みで移行を再試行する
+    }
     return migrated
   }
   return data as StoredData
