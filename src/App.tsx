@@ -47,6 +47,7 @@ export default function App() {
   const yesterday = addDays(date, -1)
 
   useEffect(() => {
+    if (view !== 'record') return
     let active = true
     Promise.all([repository.listHabits(), repository.listLogs(), repository.listExercises()]).then(([items, records, exercises]) => {
       if (active) { setHabits(items); setLogs(records); setExercises(exercises) }
@@ -54,7 +55,7 @@ export default function App() {
       .catch(() => { if (active) setError('データを読み込めませんでした。ブラウザの保存設定を確認して、再読み込みしてください。') })
       .finally(() => { if (active) setLoading(false) })
     return () => { active = false }
-  }, [repository])
+  }, [repository, view])
 
   useEffect(() => {
     const refreshDate = () => setDate(today())
