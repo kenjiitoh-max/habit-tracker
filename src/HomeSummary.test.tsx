@@ -4,6 +4,8 @@ import HomeSummary from './HomeSummary'
 import { createStudyTimeRepository } from './lib/studyTime'
 import { createWorkoutSetRepository } from './lib/workoutSets'
 import { createXpRepository } from './lib/xp'
+import { createStreakMilestoneRepository } from './lib/streakMilestones'
+import { addDays } from './lib/date'
 
 describe('HomeSummary', () => {
   it('welcomes a return with retained achievements and hides the card after recording', () => {
@@ -54,5 +56,39 @@ describe('HomeSummary', () => {
     render(<HomeSummary habits={[]} logs={[]} date="2026-06-03" studyRepository={studyRepository} workoutRepository={createWorkoutSetRepository('2026-06-03')} loading={false} error={false} />)
     expect(screen.getByRole('alert')).toHaveTextContent('読み込めませんでした')
     expect(screen.queryByText('✓ 達成済み')).not.toBeInTheDocument()
+  })
+  it('shows the flame streak and celebrates a 7-day milestone only once', () => {
+    const date = '2026-06-07'
+    const studyRepository = createStudyTimeRepository()
+    for (let i = 0; i < 7; i++) studyRepository.saveMinutes(addDays(date, -i), 'shadoten', 10)
+    const props = { habits: [], logs: [], date, studyRepository, workoutRepository: createWorkoutSetRepository(), loading: false, error: false }
+    const { unmount } = render(<HomeSummary {...props} milestoneRepository={createStreakMilestoneRepository()} />)
+    expect(screen.getByTestId('summary-streak')).toHaveTextContent('7日連続')
+    expect(screen.getByTestId('summary-streak')).toHaveTextContent('節目 7日 達成')
+    expect(screen.getByTestId('summary-streak')).toHaveTextContent('次の節目 30日まであと23日')
+    expect(screen.getByRole('status', { name: 'ストリークの節目' })).toHaveTextContent('7日連続、達成！')
+    unmount()
+    render(<HomeSummary {...props} milestoneRepository={createStreakMilestoneRepository()} />)
+    expect(screen.getByTestId('summary-streak')).toHaveTextContent('節目 7日 達成')
+    expect(screen.queryByRole('status', { name: 'ストリークの節目' })).not.toBeInTheDocument()
+  })
+  it('shows the next milestone before the first one', () => {
+    const studyRepository = createStudyTimeRepository()
+    studyRepository.saveMinutes('2026-06-07', 'spiful', 5)
+    render(<HomeSummary habits={[]} logs={[]} date="2026-06-07" studyRepository={studyRepository} workoutRepository={createWorkoutSetRepository()} loading={false} error={false} milestoneRepository={createStreakMilestoneRepository()} />)
+    expect(screen.getByTestId('summary-streak')).toHaveTextContent('1日連続')
+    expect(screen.getByTestId('summary-streak')).toHaveTextContent('次の節目 7日まであと6日')
+    expect(screen.queryByRole('status', { name: 'ストリークの節目' })).not.toBeInTheDocument()
+  })
+  it('hides the celebration when the milestone record is undone', () => {
+    const date = '2026-06-07'
+    const habits = [{ id: 'reading', name: '読書', order: 0, createdAt: '2026-06-01T00:00:00Z' }]
+    const logs = Array.from({ length: 7 }, (_, i) => ({ habitId: 'reading', date: addDays(date, -i), done: true }))
+    const props = { habits, date, studyRepository: createStudyTimeRepository(), workoutRepository: createWorkoutSetRepository(), loading: false, error: false, milestoneRepository: createStreakMilestoneRepository() }
+    const { rerender } = render(<HomeSummary {...props} logs={logs} />)
+    expect(screen.getByRole('status', { name: 'ストリークの節目' })).toHaveTextContent('7日連続、達成！')
+    rerender(<HomeSummary {...props} logs={logs.slice(1)} />)
+    expect(screen.getByTestId('summary-streak')).toHaveTextContent('6日連続')
+    expect(screen.queryByRole('status', { name: 'ストリークの節目' })).not.toBeInTheDocument()
   })
 })
