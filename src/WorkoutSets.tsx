@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { bodyParts } from './lib/exercises'
 import type { HabitRepository } from './lib/storage'
@@ -57,7 +57,7 @@ export default function WorkoutSets({ date, repository, workoutRepository }: Pro
   const [loadError, setLoadError] = useState(false)
   const [previous, setPrevious] = useState<WorkoutSet>()
 
-  function selectExercise(id: string, items = exercises) {
+  const selectExercise = useCallback((id: string, items: Exercise[]) => {
     setExerciseId(id)
     setError('')
     try {
@@ -72,24 +72,17 @@ export default function WorkoutSets({ date, repository, workoutRepository }: Pro
       setReps('')
       setError('前回の記録を読み込めませんでした。再読み込みしてください。')
     }
-  }
+  }, [workoutRepository, date])
 
   useEffect(() => {
     let active = true
     repository.listExercises().then((items) => {
       if (!active) return
       setExercises(items)
-      const id = items[0]?.id || ''
-      setExerciseId(id)
-      try {
-        const last = workoutRepository.previousSet(id, date)
-        setPrevious(last && (items[0]?.bodyweight || last.weightKg !== undefined) ? last : undefined)
-        setWeight(last?.weightKg === undefined ? '' : String(last.weightKg))
-        setReps(last ? String(last.reps) : '')
-      } catch { setError('前回の記録を読み込めませんでした。再読み込みしてください。') }
+      selectExercise(items[0]?.id || '', items)
     }).catch(() => { if (active) setLoadError(true) })
     return () => { active = false }
-  }, [repository, workoutRepository, date])
+  }, [repository, selectExercise])
 
   const exerciseById = new Map(exercises.map((item) => [item.id, item]))
   const isBodyweightSet = (set: WorkoutSet) => set.weightKg === undefined
@@ -180,7 +173,7 @@ export default function WorkoutSets({ date, repository, workoutRepository }: Pro
           })}
           <form className="set-form add-set-form" onSubmit={add} aria-label="セットを追加">
             <label htmlFor="workout-exercise">種目</label>
-            <select id="workout-exercise" value={exerciseId} onChange={(event) => selectExercise(event.target.value)} disabled={!exercises.length}>
+            <select id="workout-exercise" value={exerciseId} onChange={(event) => selectExercise(event.target.value, exercises)} disabled={!exercises.length}>
               {(Object.keys(bodyParts) as BodyPart[]).map((part) => (
                 <optgroup key={part} label={bodyParts[part]}>
                   {exercises.filter((item) => item.bodyPart === part).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}

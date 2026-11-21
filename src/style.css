@@ -163,3 +163,6 @@ label { display: block; font-size: 13px; margin: 22px 0 10px; font-weight: 500; 
 .set-actions { display: flex; gap: 8px; margin: 10px 0 6px; }
 .set-actions button { flex: 1; border-radius: 9px; font-size: 13px; }
 .add-set-button { width: 100%; margin-top: 14px; border-radius: 9px; font-size: 14px; }
+.previous-set { display: grid; gap: 8px; margin: 14px 0 16px; }
+.previous-set .field-note, .previous-set .add-set-button { margin: 0; }
+.previous-set button { -webkit-tap-highlight-color: transparent; }

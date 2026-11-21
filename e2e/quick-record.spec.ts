@@ -14,8 +14,7 @@ async function reachableTarget(target: Locator) {
 
 async function screenshot(page: Page, name: string) {
   if (process.env.SCREENSHOT_DIR) {
-    await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/${name}.png`, scale: 'css',
-      style: '* { -webkit-tap-highlight-color: transparent; }' })
+    await page.screenshot({ path: `${process.env.SCREENSHOT_DIR}/${name}.png`, scale: 'css' })
   }
 }
 
@@ -35,6 +34,10 @@ test('筋トレ：起動から前回と同じ記録まで30秒以内（種目選
   await expect(section.getByLabel('回数')).toHaveValue('8')
   const repeat = section.getByRole('button', { name: '前回と同じ' })
   await reachableTarget(repeat)
+  const buttonBox = await repeat.boundingBox()
+  const labelBox = await section.locator('label[for="workout-weight"]').boundingBox()
+  expect(labelBox!.y - (buttonBox!.y + buttonBox!.height)).toBeGreaterThanOrEqual(12)
+  expect(await repeat.evaluate((button) => getComputedStyle(button).getPropertyValue('-webkit-tap-highlight-color'))).toBe('rgba(0, 0, 0, 0)')
   await repeat.tap()
   await expect(section.getByRole('list', { name: 'ベンチプレスのセット' })).toContainText('62.5 kg × 8回')
   const elapsed = performance.now() - start
