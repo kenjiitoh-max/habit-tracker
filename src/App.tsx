@@ -4,8 +4,10 @@ import { today } from './lib/date'
 import { getRepository, isDemoMode } from './lib/storage'
 import type { Habit, HabitLog } from './lib/types'
 import { getStreak } from './lib/streak'
+import { createStudyTimeRepository } from './lib/studyTime'
 import CheckinControls from './CheckinControls'
 import StatsView from './StatsView'
+import StudyTime from './StudyTime'
 
 export default function App() {
   const [repository] = useState(() => getRepository())
@@ -15,6 +17,7 @@ export default function App() {
   const [habits, setHabits] = useState<Habit[]>([])
   const [logs, setLogs] = useState<HabitLog[]>([])
   const [date, setDate] = useState(() => today())
+  const [studyTimeRepository] = useState(() => createStudyTimeRepository(demo ? date : undefined))
   const [view, setView] = useState<'record' | 'stats'>('record')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -110,6 +113,7 @@ export default function App() {
         <p className="lead">続けたいことを、ここに集めよう。</p>
         <div className="plant" aria-hidden="true"><span>✦</span><i /><b /></div>
       </section>
+      <StudyTime key={date} date={date} repository={studyTimeRepository} />
       <section aria-labelledby="habits-heading">
         <div className="section-heading"><h2 id="habits-heading">わたしの習慣 <span>{habits.length}</span></h2><span className="small-note">一歩ずつ、こつこつ。</span></div>
         {loading ? <p role="status">読み込み中…</p> : (
