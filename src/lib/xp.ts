@@ -42,12 +42,24 @@ export function createXpRepository(demo = false) {
     },
     awardSet(id: string) { award(`set:${id}`, WORKOUT_SET_XP) },
     backfill(days: StudyDays, sets: WorkoutSet[]) {
+      const data = read()
+      let changed = false
+      const add = (key: string, amount: number) => {
+        if (Object.hasOwn(data.awarded, key)) return
+        data.awarded[key] = amount
+        data.totalXp += amount
+        changed = true
+      }
       for (const [date, minutes] of Object.entries(days)) {
         for (const service of ['shadoten', 'spiful'] as const) {
-          if (minutes && typeof minutes[service] === 'number') this.awardStudy(date, service, minutes[service])
+          if (minutes && typeof minutes[service] === 'number' && minutes[service] > 0) add(`study:${date}:${service}`, STUDY_XP)
         }
       }
-      for (const set of sets) this.awardSet(set.id)
+      for (const set of sets) add(`set:${set.id}`, WORKOUT_SET_XP)
+      if (!changed) return
+      if (demo) memory = data
+      else localStorage.setItem(XP_STORAGE_KEY, JSON.stringify(data))
+      window.dispatchEvent(new Event(XP_CHANGED))
     },
   }
 }

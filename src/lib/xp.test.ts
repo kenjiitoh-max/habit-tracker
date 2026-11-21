@@ -1,9 +1,30 @@
 import { afterEach, expect, it, vi } from 'vitest'
-import { createXpRepository, getLevel, XP_STORAGE_KEY } from './xp'
+import { createXpRepository, getLevel, XP_CHANGED, XP_STORAGE_KEY } from './xp'
 import { createStudyTimeRepository } from './studyTime'
 import { createWorkoutSetRepository, WORKOUT_SETS_STORAGE_KEY } from './workoutSets'
 
 afterEach(() => vi.restoreAllMocks())
+
+it('backfills many records with one read, one write and one notification only when changed', () => {
+  const xp = createXpRepository()
+  const days = Object.fromEntries(Array.from({ length: 100 }, (_, index) => [`day-${index}`, { shadoten: 10, spiful: 5 }]))
+  const sets = Array.from({ length: 100 }, (_, index) => ({ id: `set-${index}`, date: '2026-01-01', exerciseId: 'a', reps: 10, createdAt: 'x' }))
+  const read = vi.spyOn(Storage.prototype, 'getItem')
+  const write = vi.spyOn(Storage.prototype, 'setItem')
+  const dispatch = vi.spyOn(window, 'dispatchEvent')
+  xp.backfill(days, sets)
+  expect(read).toHaveBeenCalledTimes(1)
+  expect(write).toHaveBeenCalledTimes(1)
+  expect(dispatch).toHaveBeenCalledTimes(1)
+  expect(dispatch.mock.calls[0][0].type).toBe(XP_CHANGED)
+  expect(xp.read().totalXp).toBe(3000)
+  write.mockClear()
+  dispatch.mockClear()
+  xp.backfill(days, sets)
+  xp.backfill({}, [])
+  expect(write).not.toHaveBeenCalled()
+  expect(dispatch).not.toHaveBeenCalled()
+})
 
 it('awards once per record and never subtracts on edits, deletion or reload', () => {
   const xp = createXpRepository()
