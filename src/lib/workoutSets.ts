@@ -1,4 +1,6 @@
 import { addDays } from './date'
+import { createXpRepository, xpRepository } from './xp'
+import type { XpRepository } from './xp'
 
 export interface WorkoutSet {
   id: string
@@ -43,7 +45,7 @@ function readStored(): WorkoutSet[] {
   return data.sets
 }
 
-export function createWorkoutSetRepository(demoDate?: string) {
+export function createWorkoutSetRepository(demoDate?: string, xp: XpRepository = demoDate ? createXpRepository(true) : xpRepository) {
   let demoSets: WorkoutSet[] = demoDate ? [
     ...[[60, 10], [60, 8], [62.5, 6]].map(([weightKg, reps], index) => ({ id: `demo-bench-${index}`, date: addDays(demoDate, -1), exerciseId: 'preset-chest-bench-press', weightKg, reps, createdAt: `${addDays(demoDate, -1)}T21:0${index}:00+09:00` })),
     ...[12, 10].map((reps, index) => ({ id: `demo-pullup-${index}`, date: addDays(demoDate, -1), exerciseId: 'preset-back-pullup', reps, createdAt: `${addDays(demoDate, -1)}T21:1${index}:00+09:00` })),
@@ -61,13 +63,16 @@ export function createWorkoutSetRepository(demoDate?: string) {
         .sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt))[0]
       return previous ? { ...previous } : undefined
     },
+    listAllSets(): WorkoutSet[] { return read().map((item) => ({ ...item })) },
     listSets(date: string): WorkoutSet[] {
       return read().filter((item) => item.date === date).map((item) => ({ ...item }))
     },
-    addSet(date: string, input: WorkoutSetInput, bodyweight: boolean): WorkoutSet {
+    addSet(date: string, input: WorkoutSetInput, bodyweight: boolean, id: string = crypto.randomUUID()): WorkoutSet {
       const sets = read()
-      const set: WorkoutSet = { ...normalizeSet(input, bodyweight), id: crypto.randomUUID(), date, createdAt: new Date().toISOString() }
-      write([...sets, set])
+      const existing = sets.find((item) => item.id === id)
+      const set: WorkoutSet = existing ?? { ...normalizeSet(input, bodyweight), id, date, createdAt: new Date().toISOString() }
+      if (!existing) write([...sets, set])
+      xp.awardSet(set.id)
       return { ...set }
     },
     updateSet(id: string, input: WorkoutSetInput, bodyweight: boolean): WorkoutSet {

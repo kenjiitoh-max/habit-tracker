@@ -14,6 +14,8 @@ import StudyTime from './StudyTime'
 import StudyStats from './StudyStats'
 import YesterdayRecords from './YesterdayRecords'
 import WorkoutSets from './WorkoutSets'
+import { createXpRepository } from './lib/xp'
+import XpCard from './XpCard'
 
 export default function App() {
   const [repository] = useState(() => getRepository())
@@ -23,8 +25,9 @@ export default function App() {
   const [habits, setHabits] = useState<Habit[]>([])
   const [logs, setLogs] = useState<HabitLog[]>([])
   const [date, setDate] = useState(() => today())
-  const [studyTimeRepository] = useState(() => createStudyTimeRepository(demo ? date : undefined))
-  const [workoutRepository] = useState(() => createWorkoutSetRepository(demo ? date : undefined))
+  const [xp] = useState(() => createXpRepository(demo))
+  const [studyTimeRepository] = useState(() => createStudyTimeRepository(demo ? date : undefined, xp))
+  const [workoutRepository] = useState(() => createWorkoutSetRepository(demo ? date : undefined, xp))
   const [view, setView] = useState<'record' | 'yesterday' | 'stats' | 'exercises' | 'body'>('record')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -117,6 +120,7 @@ export default function App() {
         <button data-testid="nav-body" aria-pressed={view === 'body'} onClick={() => setView('body')}>体の記録</button>
       </nav>
       {view === 'record' ? <>
+      <XpCard repository={xp} studyRepository={studyTimeRepository} workoutRepository={workoutRepository} />
       <section className="intro">
         <p className="eyebrow">MY DAILY ROUTINE</p>
         <p className="date" data-testid="today-date">{date.replaceAll('-', '.')} <span>日本時間</span></p>
