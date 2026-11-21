@@ -5,12 +5,14 @@ import { getRepository, isDemoMode } from './lib/storage'
 import type { Habit, HabitLog } from './lib/types'
 import { getStreak } from './lib/streak'
 import { createStudyTimeRepository } from './lib/studyTime'
+import { createWorkoutSetRepository } from './lib/workoutSets'
 import CheckinControls from './CheckinControls'
 import StatsView from './StatsView'
 import BodyView from './BodyView'
 import ExercisesView from './ExercisesView'
 import StudyTime from './StudyTime'
 import YesterdayRecords from './YesterdayRecords'
+import WorkoutSets from './WorkoutSets'
 
 export default function App() {
   const [repository] = useState(() => getRepository())
@@ -21,6 +23,7 @@ export default function App() {
   const [logs, setLogs] = useState<HabitLog[]>([])
   const [date, setDate] = useState(() => today())
   const [studyTimeRepository] = useState(() => createStudyTimeRepository(demo ? date : undefined))
+  const [workoutRepository] = useState(() => createWorkoutSetRepository(demo ? date : undefined))
   const [view, setView] = useState<'record' | 'yesterday' | 'stats' | 'exercises' | 'body'>('record')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -120,6 +123,7 @@ export default function App() {
         <p className="lead">続けたいことを、ここに集めよう。</p>
         <div className="plant" aria-hidden="true"><span>✦</span><i /><b /></div>
       </section>
+      <WorkoutSets key={date} date={date} repository={repository} workoutRepository={workoutRepository} />
       <StudyTime key={date} date={date} repository={studyTimeRepository} />
       <section aria-labelledby="habits-heading">
         <div className="section-heading"><h2 id="habits-heading">わたしの習慣 <span>{habits.length}</span></h2><span className="small-note">一歩ずつ、こつこつ。</span></div>
@@ -148,7 +152,7 @@ export default function App() {
       </section>
       </> : view === 'exercises' ? <ExercisesView repository={repository} /> : view === 'body' ? <BodyView date={date} /> : loading ? <p role="status">読み込み中…</p> : !error ? (
         view === 'yesterday' ? <YesterdayRecords key={yesterday} date={yesterday} habits={habits} logs={logs}
-          studyTimeRepository={studyTimeRepository} onBack={() => setView('record')} /> :
+          studyTimeRepository={studyTimeRepository} repository={repository} workoutRepository={workoutRepository} onBack={() => setView('record')} /> :
           <StatsView habits={habits} logs={logs} date={date} />
       ) : null}
       {error && !showDialog && view !== 'body' && <p className="error" role="alert">{error}</p>}

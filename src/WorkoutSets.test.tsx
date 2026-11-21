@@ -1,0 +1,75 @@
+import { beforeEach, describe, expect, it } from 'vitest'
+import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import App from './App'
+import { addDays, today } from './lib/date'
+import { createWorkoutSetRepository } from './lib/workoutSets'
+
+describe('workout sets UI', () => {
+  beforeEach(() => {
+    HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', '') }
+    HTMLDialogElement.prototype.close = function () { this.removeAttribute('open') }
+  })
+
+  it('adds, edits and deletes sets, with reps only for bodyweight exercises', async () => {
+    const user = userEvent.setup()
+    const legacy = JSON.stringify({ habits: [{ id: 'legacy', name: '筋トレ', unit: '回', createdAt: '2025-12-31T00:00:00Z', order: 0 }], logs: [{ habitId: 'legacy', date: today(), done: true, value: 30 }] })
+    localStorage.setItem('habit-tracker:v1', legacy)
+    render(<App />)
+    const section = within(screen.getByRole('region', { name: '今日の筋トレ' }))
+    const exercise = section.getByLabelText('種目')
+    await section.findByRole('option', { name: 'ベンチプレス' })
+    await user.selectOptions(exercise, 'preset-chest-bench-press')
+    await user.type(section.getByLabelText('重量（kg）'), '60')
+    await user.type(section.getByLabelText('回数'), '10')
+    await user.click(section.getByRole('button', { name: '＋ セットを追加' }))
+    await user.clear(section.getByLabelText('回数'))
+    await user.type(section.getByLabelText('回数'), '8')
+    await user.click(section.getByRole('button', { name: '＋ セットを追加' }))
+    const bench = within(section.getByRole('list', { name: 'ベンチプレスのセット' }))
+    expect(bench.getAllByRole('listitem').map((item) => item.textContent)).toEqual([
+      expect.stringContaining('60 kg × 10回'), expect.stringContaining('60 kg × 8回'),
+    ])
+
+    await user.selectOptions(exercise, 'preset-back-pullup')
+    expect(section.queryByLabelText('重量（kg）')).not.toBeInTheDocument()
+    await user.clear(section.getByLabelText('回数'))
+    await user.type(section.getByLabelText('回数'), '12')
+    await user.click(section.getByRole('button', { name: '＋ セットを追加' }))
+    expect(section.getByRole('list', { name: '懸垂のセット' })).toHaveTextContent('12回')
+
+    await user.click(section.getByRole('button', { name: 'ベンチプレス 2セット目を編集' }))
+    const edit = within(section.getByRole('form', { name: 'ベンチプレス 2セット目を編集' }))
+    await user.clear(edit.getByLabelText('重量（kg）'))
+    await user.type(edit.getByLabelText('重量（kg）'), '62.5')
+    await user.click(edit.getByRole('button', { name: '保存' }))
+    expect(bench.getAllByRole('listitem')[1]).toHaveTextContent('62.5 kg × 8回')
+    await user.click(section.getByRole('button', { name: 'ベンチプレス 1セット目を削除' }))
+    expect(bench.getAllByRole('listitem')).toHaveLength(1)
+
+    const stored = createWorkoutSetRepository().listSets(today())
+    expect(stored.map(({ exerciseId, weightKg, reps }) => ({ exerciseId, weightKg, reps }))).toEqual([
+      { exerciseId: 'preset-chest-bench-press', weightKg: 62.5, reps: 8 },
+      { exerciseId: 'preset-back-pullup', weightKg: undefined, reps: 12 },
+    ])
+    const { habits, logs } = JSON.parse(localStorage.getItem('habit-tracker:v1')!)
+    expect({ habits, logs }).toEqual(JSON.parse(legacy))
+    expect(screen.getByRole('spinbutton', { name: '筋トレの今日の数値（回）' })).toHaveValue(30)
+  })
+
+  it('shows yesterday’s sets in the review', async () => {
+    const user = userEvent.setup()
+    const repo = createWorkoutSetRepository()
+    const yesterday = addDays(today(), -1)
+    repo.addSet(yesterday, { exerciseId: 'preset-chest-bench-press', weightKg: 60, reps: 10 }, false)
+    repo.addSet(yesterday, { exerciseId: 'preset-chest-bench-press', weightKg: 60, reps: 8 }, false)
+    repo.addSet(yesterday, { exerciseId: 'preset-chest-pushup', reps: 20 }, true)
+    repo.addSet(today(), { exerciseId: 'preset-legs-squat', weightKg: 80, reps: 5 }, false)
+    render(<App />)
+    await user.click(await screen.findByRole('button', { name: '昨日の記録' }))
+    expect((await screen.findByText('ベンチプレス')).nextElementSibling).toHaveTextContent('60 kg × 10回 / 60 kg × 8回')
+    expect(screen.getByText('腕立て伏せ').nextElementSibling).toHaveTextContent('20回')
+    expect(screen.queryByText('スクワット')).not.toBeInTheDocument()
+    expect(screen.queryByText('昨日の記録はありません。')).not.toBeInTheDocument()
+  })
+})

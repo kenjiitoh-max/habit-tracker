@@ -31,6 +31,7 @@ describe('demo UI', () => {
     expect(screen.getByText('英語リスニング')).toBeInTheDocument()
     expect(screen.getByText('シャドテン').nextElementSibling).toHaveTextContent('25 分')
     expect(screen.getByText('スピフル').nextElementSibling).toHaveTextContent('15 分')
+    expect((await screen.findByText('ベンチプレス')).nextElementSibling).toHaveTextContent('60 kg × 10回 / 60 kg × 8回 / 62.5 kg × 6回')
     await user.click(screen.getByRole('button', { name: 'グラフ' }))
     await user.click(screen.getByTestId('stats-period-month'))
     expect(screen.getAllByTestId('habit-rate')).toHaveLength(4)
