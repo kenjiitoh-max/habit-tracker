@@ -87,9 +87,9 @@ export default function BodyView({ date, repository: providedRepository }: Props
 
   return (
     <section className="body-view" data-testid="body-view" aria-labelledby="body-heading">
-      <p className="eyebrow">BODY LOG</p>
+      <p className="eyebrow">体の記録</p>
       <h1 id="body-heading">体の記録</h1>
-      <p className="lead">測った日だけでOK。習慣の連続日数や達成率には含めません。</p>
+      <p className="lead">測った日だけで大丈夫。習慣の連続日数や達成率には含めません。</p>
       {loading ? <p role="status">読み込み中…</p> : <>
         <BodyTargets items={items} />
         <form ref={form} className="stats-card body-form" onSubmit={(event) => void save(event)} noValidate>

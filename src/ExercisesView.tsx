@@ -59,7 +59,7 @@ export default function ExercisesView({ repository }: { repository: HabitReposit
   </form>
 
   return <section className="exercises-view" aria-labelledby="exercises-title">
-    <p className="eyebrow">EXERCISE LIBRARY</p>
+    <p className="eyebrow">種目ライブラリ</p>
     <h1 id="exercises-title">鍛えたい部位から。</h1>
     <p className="exercise-note">いつもの種目を、自分のメニューに。</p>
     <div className="exercise-filters" role="group" aria-label="部位で絞り込み">

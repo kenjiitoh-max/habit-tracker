@@ -13,28 +13,51 @@ export default function XpCard({ repository, studyRepository, workoutRepository,
 }) {
   const [, refresh] = useReducer((value: number) => value + 1, 0)
   const [error, setError] = useState(false)
+  const [celebration, setCelebration] = useState<{ level: number; sequence: number } | null>(null)
   useEffect(() => {
-    window.addEventListener(XP_CHANGED, refresh)
+    let previousLevel = getLevel(repository.read().totalXp).level
+    let backfilling = false
+    let sequence = 0
+    const changed = () => {
+      const nextLevel = getLevel(repository.read().totalXp).level
+      if (!backfilling && nextLevel > previousLevel) setCelebration({ level: nextLevel, sequence: ++sequence })
+      previousLevel = nextLevel
+      refresh()
+    }
+    window.addEventListener(XP_CHANGED, changed)
     window.addEventListener('storage', refresh)
     let active = true
     bodyRepository.listMeasurements().catch(() => {
       if (active) setError(true)
       return []
     }).then((measurements) => {
-      if (active) repository.backfill(studyRepository.listDays(), workoutRepository.listAllSets(), measurements)
+      if (active) {
+        backfilling = true
+        try { repository.backfill(studyRepository.listDays(), workoutRepository.listAllSets(), measurements) }
+        finally { backfilling = false }
+      }
     }).catch(() => { if (active) setError(true) })
     return () => {
       active = false
-      window.removeEventListener(XP_CHANGED, refresh)
+      window.removeEventListener(XP_CHANGED, changed)
       window.removeEventListener('storage', refresh)
     }
   }, [repository, studyRepository, workoutRepository, bodyRepository])
+  useEffect(() => {
+    if (!celebration) return
+    const timer = window.setTimeout(() => setCelebration(null), 5000)
+    return () => window.clearTimeout(timer)
+  }, [celebration])
   const { totalXp } = repository.read()
   const { level, xpIntoLevel, xpToNext } = getLevel(totalXp)
   return <section className="xp-card habit-card" aria-label="レベルとXP">
     <div className="xp-heading"><h2>レベル {level}</h2><span data-testid="total-xp">累計 {totalXp} XP</span></div>
     <progress aria-label="次のレベルまでのXP" value={xpIntoLevel} max={XP_PER_LEVEL} />
     <p>あと {xpToNext} XP で次のレベル</p>
+    {celebration && <div key={celebration.sequence} className="level-up" role="status" data-testid="level-up">
+      <strong>レベルアップ！ レベル {celebration.level}</strong>
+      <span>積み重ねが力になりました。おめでとう！</span>
+    </div>}
     {error && <p className="error" role="alert">過去の記録のXPを反映できませんでした。再読み込みで再試行できます。</p>}
   </section>
 }
