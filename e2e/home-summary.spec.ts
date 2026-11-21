@@ -1,5 +1,12 @@
 import { expect, test } from '@playwright/test'
 
+test('fresh default habits do not duplicate dedicated workout and study items', async ({ page }) => {
+  await page.goto('./')
+  const summary = page.getByRole('region', { name: '今日の記録' })
+  await expect(summary.getByRole('button')).toHaveText(['筋トレ →', 'シャドテン →', 'スピフル →'])
+  await expect(page.getByTestId('habit-item')).toHaveCount(2)
+})
+
 test('home links to inputs and updates unrecorded items, XP and completion after saving', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.addInitScript(() => {
