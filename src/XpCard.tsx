@@ -17,7 +17,10 @@ export default function XpCard({ repository, studyRepository, workoutRepository,
     window.addEventListener(XP_CHANGED, refresh)
     window.addEventListener('storage', refresh)
     let active = true
-    bodyRepository.listMeasurements().then((measurements) => {
+    bodyRepository.listMeasurements().catch(() => {
+      if (active) setError(true)
+      return []
+    }).then((measurements) => {
       if (active) repository.backfill(studyRepository.listDays(), workoutRepository.listAllSets(), measurements)
     }).catch(() => { if (active) setError(true) })
     return () => {
