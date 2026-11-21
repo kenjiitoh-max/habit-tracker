@@ -22,10 +22,13 @@ export function longestStreak(activityDates: readonly string[]): { length: numbe
 export function getActivityHistory(activityDates: readonly string[], today: string) {
   const dates = [...new Set(activityDates)].filter((date) => date <= today)
   const yesterday = addDays(today, -1)
+  const previous = dates.filter((date) => date < today).sort().at(-1)
   return {
     totalDays: dates.length,
     longest: longestStreak(dates),
     broken: !dates.includes(today) && !dates.includes(yesterday) && dates.some((date) => date < yesterday),
+    comebackDay: previous === addDays(today, -2),
+    recordedToday: dates.includes(today),
   }
 }
 

@@ -26,6 +26,25 @@ describe('HomeSummary', () => {
     rerender(<HomeSummary {...props} />)
     expect(screen.queryByRole('region', { name: '積み上げた成果' })).not.toBeInTheDocument()
   })
+  it('invites a comeback on the day after the first missed day and welcomes the awarded bonus', () => {
+    const studyRepository = createStudyTimeRepository()
+    studyRepository.saveMinutes('2026-06-01', 'shadoten', 10)
+    const xpRepository = createXpRepository(true)
+    const props = { habits: [], logs: [], date: '2026-06-03', studyRepository, workoutRepository: createWorkoutSetRepository(), xpRepository, loading: false, error: false }
+    const { rerender } = render(<HomeSummary {...props} />)
+    expect(screen.getByRole('region', { name: '積み上げた成果' })).toHaveTextContent('復帰ボーナス +30 XP がもらえます')
+    expect(screen.queryByText(/おかえりなさい！また始めて/)).not.toBeInTheDocument()
+    xpRepository.awardComeback(props.date)
+    rerender(<HomeSummary {...props} />)
+    expect(screen.getByText(/復帰ボーナス \+30 XP/, { selector: 'strong' })).toBeInTheDocument()
+    expect(screen.getByText(/また始めてくれてうれしいです/)).toBeInTheDocument()
+  })
+  it('does not invite a comeback after the day after the first missed day', () => {
+    const studyRepository = createStudyTimeRepository()
+    studyRepository.saveMinutes('2026-06-01', 'shadoten', 10)
+    render(<HomeSummary habits={[]} logs={[]} date="2026-06-04" studyRepository={studyRepository} workoutRepository={createWorkoutSetRepository()} xpRepository={createXpRepository(true)} loading={false} error={false} />)
+    expect(screen.getByRole('region', { name: '積み上げた成果' })).not.toHaveTextContent('復帰ボーナス')
+  })
   it('does not claim completion while loading', () => {
     render(<HomeSummary habits={[]} logs={[]} date="2026-06-03" studyRepository={createStudyTimeRepository('2026-06-03')} workoutRepository={createWorkoutSetRepository('2026-06-03')} loading error={false} />)
     expect(screen.getByRole('status')).toHaveTextContent('読み込み中')
