@@ -59,9 +59,9 @@ export default function BodyView({ date }: Props) {
     setError('')
     setNotice('')
     try {
-      await repository.saveMeasurement({ date: formDate, weightKg: parse(weight), bodyFatPercent: parse(fat) })
+      const saved = await repository.saveMeasurement({ date: formDate, weightKg: parse(weight), bodyFatPercent: parse(fat) })
       setItems(await repository.listMeasurements())
-      setNotice(`${formatDate(formDate)} の記録を保存しました。`)
+      setNotice(`${formatDate(formDate)} の記録を${saved ? '保存' : '削除'}しました。`)
     } catch {
       setError('保存できませんでした。入力内容とブラウザの保存設定を確認してください。')
     } finally { setBusy(false) }
@@ -108,7 +108,7 @@ export default function BodyView({ date }: Props) {
           <p className="field-note">片方だけでも保存できます。空欄にして保存すると、その項目を消します。</p>
           {error && <p className="error" role="alert">{error}</p>}
           {notice && <p className="body-notice" role="status">{notice}</p>}
-          <div className="actions"><button className="primary" data-testid="body-save-button" disabled={busy || (!weight.trim() && !fat.trim())}>{busy ? '保存中…' : existing ? '記録を修正する' : '記録する'}</button></div>
+          <div className="actions"><button className="primary" data-testid="body-save-button" disabled={busy || (!existing && !weight.trim() && !fat.trim())}>{busy ? '保存中…' : existing ? '記録を修正する' : '記録する'}</button></div>
         </form>
         <section className="body-history" aria-labelledby="body-history-heading">
           <h2 id="body-history-heading">これまでの記録</h2>

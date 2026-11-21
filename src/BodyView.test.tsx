@@ -44,6 +44,22 @@ describe('body tab', () => {
     expect(await getBodyRepository().listMeasurements()).toEqual([{ date: yesterday, bodyFatPercent: 18.3 }])
   })
 
+  it('removes an existing record when both fields are cleared and saved', async () => {
+    const user = userEvent.setup()
+    await getBodyRepository().saveMeasurement({ date: today(), weightKg: 70.2 })
+    render(<App />)
+    await screen.findByText('筋トレ')
+    await user.click(screen.getByTestId('nav-body'))
+    expect(await screen.findByTestId('body-item')).toHaveTextContent('70.2 kg')
+    await user.clear(screen.getByTestId('body-weight-input'))
+    expect(screen.getByTestId('body-save-button')).toBeEnabled()
+    await user.click(screen.getByTestId('body-save-button'))
+    expect(await screen.findByTestId('body-empty')).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('記録を削除しました')
+    expect(await getBodyRepository().listMeasurements()).toEqual([])
+    expect(screen.getByTestId('body-save-button')).toBeDisabled()
+  })
+
   it('keeps body measurements off the home screen and out of habit data', async () => {
     const user = userEvent.setup()
     await getBodyRepository().saveMeasurement({ date: today(), weightKg: 71.3, bodyFatPercent: 20.1 })
