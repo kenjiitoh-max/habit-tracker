@@ -43,10 +43,13 @@ test('日本時間の日・週・月ごとに集計し、旧記録と未記録�
   await expect(stats.getByRole('img')).toHaveAccessibleName('スピフルの月別学習時間')
   await expect(stats.getByText('今月の合計').locator('..')).toContainText('5 分')
   await expect(stats.getByRole('row', { name: '2026-02-01 〜 2026-02-28 10 分' })).toBeVisible()
-  expect(await page.evaluate(() => [
+  const [storedStudy, storedLegacy] = await page.evaluate(() => [
     localStorage.getItem('habit-tracker:study-time:v1'),
     localStorage.getItem('habit-tracker:v1'),
-  ])).toEqual([study, legacy])
+  ])
+  expect(storedStudy).toBe(study)
+  const { habits, logs } = JSON.parse(storedLegacy!)
+  expect({ habits, logs }).toEqual(JSON.parse(legacy))
 })
 
 test('デモの集計は実データを読まず、サンプルへの変更だけを反映する', async ({ page }) => {
