@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { addDays, today } from './lib/date'
 import { getRepository, isDemoMode } from './lib/storage'
-import type { Habit, HabitLog } from './lib/types'
+import type { Exercise, Habit, HabitLog } from './lib/types'
 import { getStreak } from './lib/streak'
 import { createStudyTimeRepository } from './lib/studyTime'
 import { createWorkoutSetRepository } from './lib/workoutSets'
@@ -27,6 +27,7 @@ export default function App() {
   normalUrl.searchParams.delete('demo')
   const [habits, setHabits] = useState<Habit[]>([])
   const [logs, setLogs] = useState<HabitLog[]>([])
+  const [exercises, setExercises] = useState<Exercise[]>([])
   const [date, setDate] = useState(() => today())
   const [xp] = useState(() => createXpRepository(demo))
   const [studyTimeRepository] = useState(() => createStudyTimeRepository(demo ? date : undefined, xp))
@@ -47,8 +48,8 @@ export default function App() {
 
   useEffect(() => {
     let active = true
-    Promise.all([repository.listHabits(), repository.listLogs()]).then(([items, records]) => {
-      if (active) { setHabits(items); setLogs(records) }
+    Promise.all([repository.listHabits(), repository.listLogs(), repository.listExercises()]).then(([items, records, exercises]) => {
+      if (active) { setHabits(items); setLogs(records); setExercises(exercises) }
     })
       .catch(() => { if (active) setError('データを読み込めませんでした。ブラウザの保存設定を確認して、再読み込みしてください。') })
       .finally(() => { if (active) setLoading(false) })
@@ -126,7 +127,7 @@ export default function App() {
       </nav>
       {view === 'record' ? <>
       <XpCard repository={xp} studyRepository={studyTimeRepository} workoutRepository={workoutRepository} />
-      <HomeSummary habits={habits} logs={logs} date={date} studyRepository={studyTimeRepository} workoutRepository={workoutRepository} loading={loading} error={!!error} />
+      <HomeSummary habits={habits} logs={logs} date={date} studyRepository={studyTimeRepository} workoutRepository={workoutRepository} loading={loading} error={!!error} exercises={exercises} xpRepository={xp} />
       <HomeBody />
       <WorkoutSets key={`workout-${date}`} date={date} repository={repository} workoutRepository={workoutRepository} onChange={recordsChanged} />
       <StudyTime key={date} date={date} repository={studyTimeRepository} onChange={recordsChanged} />
