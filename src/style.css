@@ -97,6 +97,15 @@ h2 { font-size: 17px; font-weight: 600; margin: 0; }
 .stats-explanation { font-size: 10px; line-height: 1.8; color: #7c8974; margin: 0; }
 .daily-details { font-size: 11px; color: #526b4d; margin-top: 14px; }.daily-details summary { cursor: pointer; padding: 6px 0; }
 .daily-details table { width: 100%; margin-top: 8px; border-collapse: collapse; text-align: right; }.daily-details th, .daily-details td { padding: 7px 3px; border-bottom: 1px solid #edf0e8; font-weight: 400; }.daily-details caption { text-align: left; padding: 6px 0; }
+.workout-stats { margin: 22px 0; }
+.workout-stats-picker { display: grid; gap: 4px; margin: 12px 0; font-size: 12px; color: #596955; }
+.workout-stats-picker select { width: 100%; min-height: 44px; padding: 8px; border: 1px solid #d9e0d4; border-radius: 9px; background: #fcfdf9; color: #293e36; font: inherit; font-size: 16px; }
+.workout-chart { margin-top: 10px; }
+.workout-chart h3 { margin: 0; font-size: 12px; }
+.workout-chart polyline { fill: none; stroke: #355f47; stroke-width: 2; }
+.workout-chart circle { fill: #355f47; }
+.workout-stats .stats-range, .workout-stats .stats-explanation, .workout-chart .chart-label { color: #596955; fill: #596955; }
+.workout-stats .daily-details th:first-child { text-align: left; }
 .study-stats { margin: 22px 0; }
 .study-stats .period-switch { margin: 12px 0; }
 .study-stats .stats-range, .study-stats .stats-explanation { color: #596955; }
