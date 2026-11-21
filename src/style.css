@@ -1,3 +1,11 @@
+.badges { margin-block: 20px; }
+.badges summary { cursor: pointer; font-weight: 700; padding-block: 12px; }
+.badge-list { list-style: none; padding: 0; display: grid; gap: 8px; }
+.badge-list li { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid #cbd3c6; border-radius: 12px; background: #f3f4f0; }
+.badge-list li[data-earned="true"] { background: #e8f2dc; border-color: #8ba878; }
+.badge-list li > span { font-size: 26px; }
+.badge-list strong { font-size: 14px; }
+.badge-list small { display: block; margin-top: 4px; }
 .xp-card { margin: 20px 0; }
 .home-summary { margin-bottom: 24px; }
 .home-body { margin-bottom: 24px; font-size: 13px; }
