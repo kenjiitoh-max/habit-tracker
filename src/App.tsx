@@ -2,12 +2,16 @@ import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { today } from './lib/date'
 import { getRepository } from './lib/storage'
-import type { Habit } from './lib/types'
+import type { Habit, HabitLog } from './lib/types'
+import { getStreak } from './lib/streak'
+import CheckinControls from './CheckinControls'
 
 const repository = getRepository()
 
 export default function App() {
   const [habits, setHabits] = useState<Habit[]>([])
+  const [logs, setLogs] = useState<HabitLog[]>([])
+  const [date, setDate] = useState(() => today())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [editing, setEditing] = useState<Habit | null | undefined>(undefined)
@@ -20,10 +24,24 @@ export default function App() {
 
   useEffect(() => {
     let active = true
-    repository.listHabits().then((items) => { if (active) setHabits(items) })
+    Promise.all([repository.listHabits(), repository.listLogs()]).then(([items, records]) => {
+      if (active) { setHabits(items); setLogs(records) }
+    })
       .catch(() => { if (active) setError('データを読み込めませんでした。ブラウザの保存設定を確認して、再読み込みしてください。') })
       .finally(() => { if (active) setLoading(false) })
     return () => { active = false }
+  }, [])
+
+  useEffect(() => {
+    const refreshDate = () => setDate(today())
+    const interval = window.setInterval(refreshDate, 1000)
+    window.addEventListener('focus', refreshDate)
+    document.addEventListener('visibilitychange', refreshDate)
+    return () => {
+      window.clearInterval(interval)
+      window.removeEventListener('focus', refreshDate)
+      document.removeEventListener('visibilitychange', refreshDate)
+    }
   }, [])
 
   useEffect(() => {
@@ -65,6 +83,7 @@ export default function App() {
     setError('')
     try {
       await repository.deleteHabit(deleting.id)
+      setLogs((items) => items.filter((log) => log.habitId !== deleting.id))
       setHabits(await repository.listHabits())
       setDeleting(null)
     } catch { setError('削除できませんでした。もう一度お試しください。') }
@@ -76,7 +95,7 @@ export default function App() {
       <header className="brand"><span className="brand-mark" aria-hidden="true">芽</span> 習慣トラッカー<span className="local-badge">この端末に保存</span></header>
       <section className="intro">
         <p className="eyebrow">MY DAILY ROUTINE</p>
-        <p className="date">{today().replaceAll('-', '.')} <span>日本時間</span></p>
+        <p className="date">{date.replaceAll('-', '.')} <span>日本時間</span></p>
         <h1>小さな習慣を、<br />自分のペースで。</h1>
         <p className="lead">続けたいことを、ここに集めよう。</p>
         <div className="plant" aria-hidden="true"><span>✦</span><i /><b /></div>
@@ -87,10 +106,18 @@ export default function App() {
           <ul className="habit-list" data-testid="habit-list">
             {habits.map((habit, index) => (
               <li className="habit-card" data-testid="habit-item" key={habit.id}>
-                <span className={`habit-icon tone-${index % 3}`} aria-hidden="true">{habit.name.slice(0, 1)}</span>
+                <div className="habit-card-heading"><span className={`habit-icon tone-${index % 3}`} aria-hidden="true">{habit.name.slice(0, 1)}</span>
                 <div className="habit-info"><h3>{habit.name}</h3><p>{habit.unit ? `単位：${habit.unit}` : '単位なし'}</p></div>
                 <button className="edit-button" data-testid="edit-habit-button" aria-label={`${habit.name}を編集`} onClick={() => openForm(habit)}>編集 <span aria-hidden="true">↗</span></button>
                 <button className="icon-button" data-testid="delete-habit-button" aria-label={`${habit.name}を削除`} onClick={() => { setError(''); setDeleting(habit) }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M4 6h16M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7M14 10v7" /></svg></button>
+                </div>
+                <CheckinControls key={date} habit={habit} date={date}
+                  log={logs.find((log) => log.habitId === habit.id && log.date === date)}
+                  streak={getStreak(habit.id, logs, date)}
+                  onChange={(next) => setLogs((items) => {
+                    const remaining = items.filter((log) => log.habitId !== habit.id || log.date !== date)
+                    return next ? [...remaining, next] : remaining
+                  })} />
               </li>
             ))}
             {!habits.length && <li className="empty" data-testid="empty-state">まだ習慣がありません。<br />まずは、ひとつ追加してみましょう。</li>}

@@ -25,7 +25,21 @@ h2 { font-size: 17px; font-weight: 600; margin: 0; }
 .section-heading h2 span { display: inline-grid; place-items: center; background: #e7ecdf; font-size: 11px; height: 23px; width: 23px; border-radius: 50%; margin-left: 6px; }
 .small-note { font-size: 10px; color: #7c867b; }
 .habit-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
-.habit-card { display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid #e7e9e0; border-radius: 15px; min-height: 94px; padding: 17px 12px 17px 16px; box-shadow: 0 3px 8px #24392a03; }
+.habit-card { background: #fff; border: 1px solid #e7e9e0; border-radius: 15px; padding: 17px 12px 17px 16px; box-shadow: 0 3px 8px #24392a03; }
+.habit-card-heading { display: flex; align-items: center; gap: 12px; }
+.checkin { margin-top: 16px; padding-top: 14px; border-top: 1px solid #edf0e8; }
+.checkin-row, .value-row { display: flex; align-items: center; gap: 10px; }
+.checkin-row { justify-content: space-between; }
+.checkin-toggle { padding: 9px 16px; border: 1px solid #c7d3bf; border-radius: 9px; background: #f6f8f2; color: #47664d; font-size: 13px; }
+.checkin-toggle[aria-pressed='true'] { background: #355f47; border-color: #355f47; color: white; }
+.checkin-toggle span { margin-right: 6px; }
+.streak { font-size: 12px; color: #567348; background: #eff3e9; padding: 6px 9px; border-radius: 20px; }
+.value-row { margin-top: 12px; }
+.value-row label { font-size: 11px; font-weight: 400; margin: 0 auto 0 0; }
+.value-row label span { color: #85907f; font-size: 10px; margin-left: 5px; }
+.value-row input { width: 90px; padding: 8px; min-height: 44px; text-align: right; }
+.value-unit { color: #6c7c71; font-size: 12px; max-width: 80px; overflow-wrap: anywhere; }
+.checkin-note { color: #7a8679; font-size: 10px; margin: 9px 0 0; }
 .habit-icon { width: 42px; height: 46px; border-radius: 13px; flex-shrink: 0; display: grid; place-items: center; font-size: 18px; }
 .tone-0 { background: #edf0e3; color: #687c42; }.tone-1 { background: #e9eff4; color: #577387; }.tone-2 { background: #f4ebe1; color: #997651; }
 .habit-info { flex: 1; min-width: 0; }.habit-info h3 { font-size: 14px; font-weight: 600; margin: 0; overflow-wrap: anywhere; }.habit-info p { font-size: 11px; color: #839084; margin: 7px 0 0; }
