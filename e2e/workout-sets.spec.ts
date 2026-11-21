@@ -44,3 +44,46 @@ test('今日の種目ごとにセットを保存・修正でき、昨日の振�
   await expect(page.getByText('ベンチプレス').locator('+ dd')).toHaveText('60 kg × 10回 / 62.5 kg × 8回')
   await expect(page.getByText('懸垂').locator('+ dd')).toHaveText('12回')
 })
+
+test('デモの筋トレ履歴で初回と自己ベスト更新を区別し、同値や再読み込みでは祝わない', async ({ page }) => {
+  const key = 'habit-tracker:workout-sets:v1'
+  const realData = JSON.stringify({ sets: [{
+    id: 'real-bench', date: '2025-12-31', exerciseId: 'preset-chest-bench-press',
+    reps: 100, weightKg: 999, createdAt: '2025-12-31T12:00:00Z',
+  }] })
+  await page.clock.install({ time: new Date('2026-01-01T12:00:00Z') })
+  await page.addInitScript(({ key, realData }) => {
+    if (localStorage.getItem(key) === null) localStorage.setItem(key, realData)
+  }, { key, realData })
+  await page.goto('./?demo=1')
+
+  const section = page.getByRole('region', { name: '今日の筋トレ' })
+  const form = section.getByRole('form', { name: 'セットを追加' })
+  const status = section.getByRole('status')
+  await form.getByLabel('種目').selectOption({ label: 'ラットプルダウン' })
+  await form.getByLabel('重量（kg）').fill('45')
+  await form.getByLabel('回数').fill('10')
+  await form.getByRole('button', { name: '＋ セットを追加' }).tap()
+  await expect(status).toContainText('初めての記録')
+  await expect(status).toContainText('総挙上量：450 kg')
+
+  await form.getByLabel('種目').selectOption({ label: 'ベンチプレス' })
+  await form.getByLabel('重量（kg）').fill('65')
+  await form.getByLabel('回数').fill('12')
+  await form.getByRole('button', { name: '＋ セットを追加' }).tap()
+  await expect(status).toContainText('自己ベスト更新！')
+  await expect(status).toContainText('最大重量：65 kg')
+  await expect(status).toContainText('最大回数：12回')
+  await expect(status).not.toContainText('総挙上量')
+  await form.getByRole('button', { name: '＋ セットを追加' }).tap()
+  await expect(status).toContainText('総挙上量：1,560 kg')
+  await expect(status).not.toContainText('最大重量')
+  await expect(status).not.toContainText('最大回数')
+
+  await section.getByRole('button', { name: 'ベンチプレス 2セット目を編集' }).tap()
+  await section.getByRole('form', { name: 'ベンチプレス 2セット目を編集' }).getByRole('button', { name: '保存' }).tap()
+  await expect(status).toBeEmpty()
+  await page.reload()
+  await expect(status).toBeEmpty()
+  expect(await page.evaluate((key) => localStorage.getItem(key), key)).toEqual(realData)
+})
