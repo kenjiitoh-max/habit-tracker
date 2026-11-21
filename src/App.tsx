@@ -14,6 +14,7 @@ import StudyTime from './StudyTime'
 import StudyStats from './StudyStats'
 import YesterdayRecords from './YesterdayRecords'
 import WorkoutSets from './WorkoutSets'
+import WorkoutStats from './WorkoutStats'
 import { createXpRepository } from './lib/xp'
 import XpCard from './XpCard'
 import HomeSummary from './HomeSummary'
@@ -158,6 +159,7 @@ export default function App() {
         view === 'yesterday' ? <YesterdayRecords key={yesterday} date={yesterday} habits={habits} logs={logs}
           studyTimeRepository={studyTimeRepository} repository={repository} workoutRepository={workoutRepository} onBack={() => setView('record')} /> :
           <StatsView habits={habits} logs={logs} date={date}>
+            <WorkoutStats repository={repository} workoutRepository={workoutRepository} />
             <StudyStats date={date} habits={habits} logs={logs} repository={studyTimeRepository} />
           </StatsView>
       ) : null}

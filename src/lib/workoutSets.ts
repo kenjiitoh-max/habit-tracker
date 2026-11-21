@@ -47,6 +47,10 @@ function readStored(): WorkoutSet[] {
 
 export function createWorkoutSetRepository(demoDate?: string, xp: XpRepository = demoDate ? createXpRepository(true) : xpRepository) {
   let demoSets: WorkoutSet[] = demoDate ? [
+    ...[[7, 55], [3, 57.5]].map(([daysAgo, weightKg]) => {
+      const date = addDays(demoDate, -daysAgo)
+      return { id: `demo-bench-${daysAgo}-days-ago`, date, exerciseId: 'preset-chest-bench-press', weightKg, reps: 10, createdAt: `${date}T21:00:00+09:00` }
+    }),
     ...[[60, 10], [60, 8], [62.5, 6]].map(([weightKg, reps], index) => ({ id: `demo-bench-${index}`, date: addDays(demoDate, -1), exerciseId: 'preset-chest-bench-press', weightKg, reps, createdAt: `${addDays(demoDate, -1)}T21:0${index}:00+09:00` })),
     ...[12, 10].map((reps, index) => ({ id: `demo-pullup-${index}`, date: addDays(demoDate, -1), exerciseId: 'preset-back-pullup', reps, createdAt: `${addDays(demoDate, -1)}T21:1${index}:00+09:00` })),
     { id: 'demo-squat-0', date: demoDate, exerciseId: 'preset-legs-squat', weightKg: 80, reps: 8, createdAt: `${demoDate}T21:00:00+09:00` },
