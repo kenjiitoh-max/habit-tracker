@@ -38,7 +38,7 @@ export function createXpRepository(demo = false) {
   return {
     read,
     awardStudy(date: string, service: string, minutes: number) {
-      if (minutes > 0) award(`study:${date}:${service}`, STUDY_XP)
+      if (minutes >= 1) award(`study:${date}:${service}`, STUDY_XP)
     },
     awardSet(id: string) { award(`set:${id}`, WORKOUT_SET_XP) },
     backfill(days: StudyDays, sets: WorkoutSet[]) {
@@ -52,7 +52,7 @@ export function createXpRepository(demo = false) {
       }
       for (const [date, minutes] of Object.entries(days)) {
         for (const service of ['shadoten', 'spiful'] as const) {
-          if (minutes && typeof minutes[service] === 'number' && minutes[service] > 0) add(`study:${date}:${service}`, STUDY_XP)
+          if (minutes && typeof minutes[service] === 'number' && minutes[service] >= 1) add(`study:${date}:${service}`, STUDY_XP)
         }
       }
       for (const set of sets) add(`set:${set.id}`, WORKOUT_SET_XP)

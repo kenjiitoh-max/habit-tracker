@@ -5,6 +5,18 @@ import { createWorkoutSetRepository, WORKOUT_SETS_STORAGE_KEY } from './workoutS
 
 afterEach(() => vi.restoreAllMocks())
 
+it('awards study XP only from one minute, including during backfill', () => {
+  const xp = createXpRepository()
+  const study = createStudyTimeRepository(undefined, xp)
+  study.saveMinutes('2026-01-01', 'shadoten', 0.5)
+  xp.backfill(study.listDays(), [])
+  expect(xp.read()).toEqual({ totalXp: 0, awarded: {} })
+  study.saveMinutes('2026-01-01', 'shadoten', 1)
+  expect(xp.read().totalXp).toBe(10)
+  xp.backfill({ '2026-01-02': { shadoten: 0.5, spiful: 1 } }, [])
+  expect(xp.read()).toEqual({ totalXp: 20, awarded: { 'study:2026-01-01:shadoten': 10, 'study:2026-01-02:spiful': 10 } })
+})
+
 it('backfills many records with one read, one write and one notification only when changed', () => {
   const xp = createXpRepository()
   const days = Object.fromEntries(Array.from({ length: 100 }, (_, index) => [`day-${index}`, { shadoten: 10, spiful: 5 }]))
