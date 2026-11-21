@@ -90,7 +90,7 @@ export default function StudyStats({ date, habits, logs, repository }: Props) {
         </p>}
         <p className="stats-range">{title}：{formatRange(stats.trend[0].start, date)}</p>
         <StudyChart trend={stats.trend} title={title} period={period} />
-        <p className="stats-explanation" id="study-chart-legend">● 0 分　空欄：未記録{stats.trend.some(hasLegacy) && '　◆ 旧記録あり'}</p>
+        <p className="stats-explanation" id="study-chart-legend">{'● 0 分　空欄：未記録'}{stats.trend.some(hasLegacy) && '　◆ 旧記録あり'}</p>
         <details className="daily-details">
           <summary>{periods[period]}別の学習データを見る</summary>
           <table>
