@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { bodyParts } from './lib/exercises'
 import type { HabitRepository } from './lib/storage'
 import type { BodyPart, Exercise } from './lib/types'
 import { formatSet, groupByExercise } from './lib/workoutSets'
-import type { WorkoutSet, WorkoutSetRepository } from './lib/workoutSets'
+import type { WorkoutSet, WorkoutSetInput, WorkoutSetRepository } from './lib/workoutSets'
 
 interface Props {
   date: string
@@ -73,6 +73,9 @@ export default function WorkoutSets({ date, repository, workoutRepository }: Pro
       setError('前回の記録を読み込めませんでした。再読み込みしてください。')
     }
   }, [workoutRepository, date])
+  const saving = useRef(false)
+  const pendingId = useRef<string | null>(null)
+  const [busy, setBusy] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -91,11 +94,21 @@ export default function WorkoutSets({ date, repository, workoutRepository }: Pro
   function add(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!selected || !event.currentTarget.checkValidity()) return
+    void saveSet(toInput(selected.id, weight, reps, selected.bodyweight))
+  }
+
+  async function saveSet(input: WorkoutSetInput) {
+    if (saving.current || !selected) return
+    saving.current = true
+    setBusy(true)
+    pendingId.current ??= crypto.randomUUID()
     setError('')
     try {
-      workoutRepository.addSet(date, toInput(selected.id, weight, reps, selected.bodyweight), selected.bodyweight)
+      await workoutRepository.addSet(date, input, selected.bodyweight, pendingId.current)
       setSets(workoutRepository.listSets(date))
+      pendingId.current = null
     } catch { setError('セットを保存できませんでした。入力内容やブラウザの保存設定を確認してください。') }
+    finally { saving.current = false; setBusy(false) }
   }
 
   function startEdit(set: WorkoutSet) {
@@ -107,11 +120,7 @@ export default function WorkoutSets({ date, repository, workoutRepository }: Pro
 
   function repeatPrevious() {
     if (!selected || !previous) return
-    setError('')
-    try {
-      workoutRepository.addSet(date, previous, selected.bodyweight)
-      setSets(workoutRepository.listSets(date))
-    } catch { setError('セットを保存できませんでした。入力内容やブラウザの保存設定を確認してください。') }
+    void saveSet(previous)
   }
 
   function update(event: FormEvent<HTMLFormElement>) {
@@ -182,11 +191,11 @@ export default function WorkoutSets({ date, repository, workoutRepository }: Pro
             </select>
             {previous && <div className="previous-set">
               <p className="field-note">前回（{previous.date}・最終セット）：{formatSet(selected?.bodyweight ? { reps: previous.reps } : previous)}</p>
-              <button type="button" className="primary add-set-button" onClick={repeatPrevious}>前回と同じ</button>
+              <button type="button" className="primary add-set-button" onClick={repeatPrevious} disabled={busy}>前回と同じ</button>
             </div>}
             <SetFields idPrefix="workout" bodyweight={!!selected?.bodyweight} weight={weight} reps={reps} setWeight={setWeight} setReps={setReps} />
             {selected?.bodyweight && <p className="field-note">自重種目なので回数だけ記録します。</p>}
-            <button className="primary add-set-button" disabled={!selected}>＋ セットを追加</button>
+            <button className="primary add-set-button" disabled={!selected || busy}>＋ セットを追加</button>
           </form>
         </>}
         {loadError && <p className="error" role="alert">種目を読み込めませんでした。再読み込みしてください。</p>}

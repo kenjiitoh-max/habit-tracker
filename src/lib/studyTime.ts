@@ -1,4 +1,6 @@
 import { addDays } from './date'
+import { createXpRepository, xpRepository } from './xp'
+import type { XpRepository } from './xp'
 
 export const studyServices = {
   shadoten: 'シャドテン',
@@ -21,7 +23,7 @@ function readStoredDays(): StudyDays {
   return data as StudyDays
 }
 
-export function createStudyTimeRepository(demoDate?: string) {
+export function createStudyTimeRepository(demoDate?: string, xp: XpRepository = demoDate ? createXpRepository(true) : xpRepository) {
   let demoDays: StudyDays = demoDate ? {
     [demoDate]: { shadoten: 20, spiful: 10 },
     [addDays(demoDate, -1)]: { shadoten: 25, spiful: 15 },
@@ -44,6 +46,7 @@ export function createStudyTimeRepository(demoDate?: string) {
       const nextDays = { ...days, [date]: { ...days[date], [service]: minutes } }
       if (demoDate) demoDays = nextDays
       else localStorage.setItem(STORAGE_KEY, JSON.stringify(nextDays))
+      xp.awardStudy(date, service, minutes)
     },
   }
 }

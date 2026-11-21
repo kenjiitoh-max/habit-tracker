@@ -1,10 +1,11 @@
-import { beforeEach, describe, expect, it } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from './App'
 import { addDays, today } from './lib/date'
 import { createWorkoutSetRepository } from './lib/workoutSets'
 import { getRepository } from './lib/storage'
+import WorkoutSets from './WorkoutSets'
 
 describe('workout sets UI', () => {
   it('prefills the previous session and repeats it even after editing the inputs', async () => {
@@ -44,6 +45,25 @@ describe('workout sets UI', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('セットを保存できませんでした')
     expect(screen.getByLabelText('回数')).toHaveValue(12)
     expect(localStorage.getItem('habit-tracker:workout-sets:v1')).toBe('broken')
+  })
+  it('guards double submission and retains the pending id after a saved add fails to refresh', async () => {
+    const user = userEvent.setup()
+    const repo = createWorkoutSetRepository()
+    const add = vi.spyOn(repo, 'addSet')
+    const list = vi.spyOn(repo, 'listSets')
+    render(<WorkoutSets date={today()} repository={getRepository()} workoutRepository={repo} />)
+    await screen.findByRole('option', { name: '懸垂' })
+    await user.type(screen.getByLabelText('回数'), '10')
+    list.mockImplementationOnce(() => { throw new Error('read failed') })
+    const form = screen.getByRole('form', { name: 'セットを追加' })
+    fireEvent.submit(form)
+    fireEvent.submit(form)
+    await screen.findByRole('alert')
+    expect(add).toHaveBeenCalledTimes(1)
+    fireEvent.submit(form)
+    await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument())
+    expect(add.mock.calls[0][3]).toBe(add.mock.calls[1][3])
+    expect(repo.listAllSets()).toHaveLength(1)
   })
   beforeEach(() => {
     HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', '') }
