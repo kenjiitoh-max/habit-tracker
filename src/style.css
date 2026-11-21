@@ -52,6 +52,15 @@ h2 { font-size: 17px; font-weight: 600; margin: 0; }
 .view-switch { display: flex; gap: 6px; margin-top: 24px; border-bottom: 1px solid #dfe6d8; }
 .view-switch button { flex: 1; background: transparent; border: 0; border-bottom: 2px solid transparent; color: #738075; font-size: 13px; }
 .view-switch button[aria-pressed='true'] { border-bottom-color: #355f47; color: #355f47; font-weight: 600; }
+.yesterday-view { padding-top: 30px; }
+.yesterday-view h1 { font-size: 24px; }
+.yesterday-view .date { margin: 5px 0 20px; }
+.yesterday-list { margin: 0 0 20px; padding-block: 3px; }
+.yesterday-list > div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 12px 0; font-size: 14px; }
+.yesterday-list > div + div { border-top: 1px solid #edf0e8; }
+.yesterday-list dt, .yesterday-list dd { overflow-wrap: anywhere; }
+.yesterday-list dd { margin: 0; text-align: end; color: #47664d; }
+.yesterday-back { width: 100%; border-radius: 9px; font-size: 13px; }
 .stats-view { padding-top: 30px; }
 .stats-view h1 { font-size: 24px; }
 .period-switch { display: flex; background: #e8ede1; border-radius: 11px; padding: 4px; margin: 24px 0 18px; }
