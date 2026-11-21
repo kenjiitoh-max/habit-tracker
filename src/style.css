@@ -9,6 +9,8 @@ button:focus-visible, input:focus-visible { outline: 3px solid #769e82; outline-
 .brand { display: flex; align-items: center; gap: 9px; font-size: 14px; font-weight: 700; }
 .brand-mark { display: grid; place-items: center; background: #315d48; color: white; width: 30px; height: 32px; border-radius: 10px 10px 10px 2px; font-size: 16px; }
 .local-badge { margin-left: auto; font-size: 10px; font-weight: 400; color: #64766c; border: 1px solid #dce2d8; border-radius: 20px; padding: 5px 9px; }
+.demo-banner { background: #edf1df; border: 1px solid #d3ddba; border-radius: 12px; padding: 14px; margin-top: 20px; font-size: 12px; color: #4b6240; }
+.demo-banner strong { font-size: 13px; font-weight: 600; }.demo-banner p { font-size: 11px; line-height: 1.8; margin: 7px 0; }.demo-banner a { display: inline-block; color: #355f47; font-size: 11px; padding: 8px 0; text-underline-offset: 3px; }
 .intro { position: relative; padding: 42px 0 32px; overflow: hidden; }
 .eyebrow { color: #64816b; font-size: 10px; font-weight: 700; letter-spacing: 2px; margin: 0 0 16px; }
 .date { font-size: 12px; color: #718075; margin: 0 0 14px; letter-spacing: 1px; }

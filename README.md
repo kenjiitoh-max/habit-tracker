@@ -3,6 +3,14 @@
 
 公開URL： https://kenjiitoh-max.github.io/habit-tracker/
 
+## デモモード
+
+https://kenjiitoh-max.github.io/habit-tracker/?demo=1
+
+URLに `?demo=1` を付けると、今日（日本時間）までの60日間の架空データを体験できます。4つの習慣と、期間途中から始めた習慣を含みます。同じ日なら毎回同じサンプルで、日付が変わると期間が移動します。
+デモ中は実際のlocalStorageデータを読み書きしません。追加・編集・削除・チェックはメモリ内だけで動作し、再読み込みでリセットされます。「デモを終了して通常モードへ」から元のデータに戻れます。
+記録／グラフの切り替えやオフライン利用でもデモを維持します。ホーム画面からの起動URLは通常モードのままです。
+
 ## ホーム画面に追加・オフライン利用
 
 - iPhone：Safariで公開URLを開き、共有 →「ホーム画面に追加」を選びます。
@@ -65,4 +73,4 @@ npm run build     # dist/ に静的サイトを出力
 - `src/lib/storage.ts`：唯一の永続化窓口。非同期 `HabitRepository` と `getRepository()` により将来の実装差し替えに対応
 
 Vite + React + TypeScript、Vitest、ESLintを使用。公開パスは `/habit-tracker/` です。
-デモモード・E2E/CIは今後追加予定です。
+E2E/CIは今後追加予定です。

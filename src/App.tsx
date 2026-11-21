@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { today } from './lib/date'
-import { getRepository } from './lib/storage'
+import { getRepository, isDemoMode } from './lib/storage'
 import type { Habit, HabitLog } from './lib/types'
 import { getStreak } from './lib/streak'
 import CheckinControls from './CheckinControls'
 import StatsView from './StatsView'
 
-const repository = getRepository()
-
 export default function App() {
+  const [repository] = useState(() => getRepository())
+  const demo = isDemoMode()
+  const normalUrl = new URL(window.location.href)
+  normalUrl.searchParams.delete('demo')
   const [habits, setHabits] = useState<Habit[]>([])
   const [logs, setLogs] = useState<HabitLog[]>([])
   const [date, setDate] = useState(() => today())
@@ -32,7 +34,7 @@ export default function App() {
       .catch(() => { if (active) setError('データを読み込めませんでした。ブラウザの保存設定を確認して、再読み込みしてください。') })
       .finally(() => { if (active) setLoading(false) })
     return () => { active = false }
-  }, [])
+  }, [repository])
 
   useEffect(() => {
     const refreshDate = () => setDate(today())
@@ -94,7 +96,8 @@ export default function App() {
 
   return (
     <main className="app">
-      <header className="brand"><span className="brand-mark" aria-hidden="true">芽</span> 習慣トラッカー<span className="local-badge">この端末に保存</span></header>
+      <header className="brand"><span className="brand-mark" aria-hidden="true">芽</span> 習慣トラッカー<span className="local-badge">{demo ? 'サンプル体験中' : 'この端末に保存'}</span></header>
+      {demo && <aside className="demo-banner" data-testid="demo-banner"><strong>デモモード（サンプルデータ）</strong><p>実際のデータには触れません。<br />変更は再読み込みでリセットされます。</p><a href={normalUrl.href}>デモを終了して通常モードへ →</a></aside>}
       <nav className="view-switch" aria-label="表示切り替え">
         <button aria-pressed={view === 'record'} onClick={() => setView('record')}>記録</button>
         <button aria-pressed={view === 'stats'} onClick={() => setView('stats')}>グラフ</button>
@@ -135,7 +138,7 @@ export default function App() {
       </> : loading ? <p role="status">読み込み中…</p> : !error ? <StatsView habits={habits} logs={logs} date={date} /> : null}
       {error && !showDialog && <p className="error" role="alert">{error}</p>}
       <aside className="tip"><span aria-hidden="true">✧</span><p>大切なのは、完璧よりも続けること。<br /><strong>今日の小さな一歩が、明日の自分に。</strong></p></aside>
-      <footer>あなたのペースを、大切に。<br /><span>データはこのブラウザだけに保存されます。</span></footer>
+      <footer>あなたのペースを、大切に。<br /><span>{demo ? 'サンプルへの変更は保存されません。' : 'データはこのブラウザだけに保存されます。'}</span></footer>
       <dialog ref={dialog} onCancel={(event) => { event.preventDefault(); closeDialog() }} aria-labelledby="dialog-title" data-testid="habit-dialog">
         {deleting ? <>
           <p className="eyebrow">DELETE HABIT</p><h2 id="dialog-title">習慣を削除しますか？</h2>
