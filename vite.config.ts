@@ -32,5 +32,5 @@ export default defineConfig({
       cleanupOutdatedCaches: true,
     },
   })],
-  test: { environment: 'jsdom', setupFiles: './src/test/setup.ts' },
+  test: { include: ['src/**/*.test.{ts,tsx}'], environment: 'jsdom', setupFiles: './src/test/setup.ts' },
 })
