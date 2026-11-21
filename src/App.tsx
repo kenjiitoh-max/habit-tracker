@@ -5,6 +5,7 @@ import { getRepository } from './lib/storage'
 import type { Habit, HabitLog } from './lib/types'
 import { getStreak } from './lib/streak'
 import CheckinControls from './CheckinControls'
+import StatsView from './StatsView'
 
 const repository = getRepository()
 
@@ -12,6 +13,7 @@ export default function App() {
   const [habits, setHabits] = useState<Habit[]>([])
   const [logs, setLogs] = useState<HabitLog[]>([])
   const [date, setDate] = useState(() => today())
+  const [view, setView] = useState<'record' | 'stats'>('record')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [editing, setEditing] = useState<Habit | null | undefined>(undefined)
@@ -93,6 +95,11 @@ export default function App() {
   return (
     <main className="app">
       <header className="brand"><span className="brand-mark" aria-hidden="true">芽</span> 習慣トラッカー<span className="local-badge">この端末に保存</span></header>
+      <nav className="view-switch" aria-label="表示切り替え">
+        <button aria-pressed={view === 'record'} onClick={() => setView('record')}>記録</button>
+        <button aria-pressed={view === 'stats'} onClick={() => setView('stats')}>グラフ</button>
+      </nav>
+      {view === 'record' ? <>
       <section className="intro">
         <p className="eyebrow">MY DAILY ROUTINE</p>
         <p className="date">{date.replaceAll('-', '.')} <span>日本時間</span></p>
@@ -125,6 +132,7 @@ export default function App() {
         )}
         <button className="add-button" data-testid="add-habit-button" onClick={() => openForm(null)} disabled={loading || (!!error && !showDialog)}><span aria-hidden="true">＋</span> 習慣を追加する</button>
       </section>
+      </> : loading ? <p role="status">読み込み中…</p> : !error ? <StatsView habits={habits} logs={logs} date={date} /> : null}
       {error && !showDialog && <p className="error" role="alert">{error}</p>}
       <aside className="tip"><span aria-hidden="true">✧</span><p>大切なのは、完璧よりも続けること。<br /><strong>今日の小さな一歩が、明日の自分に。</strong></p></aside>
       <footer>あなたのペースを、大切に。<br /><span>データはこのブラウザだけに保存されます。</span></footer>
