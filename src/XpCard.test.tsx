@@ -13,8 +13,8 @@ function renderCard() {
   return repository
 }
 
-it('backfills study and set XP even when body storage is corrupt, without overwriting measurements', async () => {
-  localStorage.setItem(BODY_STORAGE_KEY, '{broken')
+it.each(['{broken', '{"measurements":[null]}'])('backfills study and set XP despite invalid body storage %s, without overwriting it', async (raw) => {
+  localStorage.setItem(BODY_STORAGE_KEY, raw)
   localStorage.setItem('habit-tracker:study-time:v1', JSON.stringify({ '2026-01-01': { shadoten: 15 } }))
   localStorage.setItem(WORKOUT_SETS_STORAGE_KEY, JSON.stringify({ sets: [
     { id: 'old-set', date: '2026-01-01', exerciseId: 'bench', reps: 10, createdAt: '2026-01-01' },
@@ -22,8 +22,9 @@ it('backfills study and set XP even when body storage is corrupt, without overwr
   const repository = renderCard()
   await waitFor(() => expect(screen.getByTestId('total-xp')).toHaveTextContent('累計 20 XP'))
   expect(repository.read()).toEqual({ totalXp: 20, awarded: { 'study:2026-01-01:shadoten': 10, 'set:old-set': 10 } })
-  expect(screen.getByRole('alert')).toHaveTextContent('過去の記録のXPを反映できませんでした。')
-  expect(localStorage.getItem(BODY_STORAGE_KEY)).toBe('{broken')
+  if (raw === '{broken') expect(screen.getByRole('alert')).toHaveTextContent('過去の記録のXPを反映できませんでした。')
+  else expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  expect(localStorage.getItem(BODY_STORAGE_KEY)).toBe(raw)
 })
 
 it('still reports other backfill failures', async () => {

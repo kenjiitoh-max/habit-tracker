@@ -6,6 +6,17 @@ import { getBodyRepository } from './bodyStorage'
 
 afterEach(() => vi.restoreAllMocks())
 
+it('skips invalid body entries in both direct awards and backfill while awarding valid measurements', () => {
+  const xp = createXpRepository()
+  const invalid = JSON.parse('[null,42,"bad",[],{}, {"date":"2026-02-30","weightKg":70}, {"date":"2026-01-01","weightKg":"70"}, {"date":"2026-01-01","weightKg":0}, {"date":"2026-01-01","bodyFatPercent":100}, {"weightKg":70}]')
+  for (const measurement of invalid) xp.awardBody(measurement)
+  xp.backfill({}, [], invalid)
+  expect(xp.read()).toEqual({ totalXp: 0, awarded: {} })
+  expect(localStorage.getItem(XP_STORAGE_KEY)).toBeNull()
+  xp.backfill({}, [], [...invalid, { date: '2026-01-01', weightKg: 70 }])
+  expect(xp.read()).toEqual({ totalXp: 5, awarded: { 'body:2026-01-01': 5 } })
+})
+
 it('awards study XP only from one minute, including during backfill', () => {
   const xp = createXpRepository()
   const study = createStudyTimeRepository(undefined, xp)
