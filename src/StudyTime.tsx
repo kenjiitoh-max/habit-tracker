@@ -6,6 +6,7 @@ import type { createStudyTimeRepository } from './lib/studyTime'
 interface Props {
   date: string
   repository: ReturnType<typeof createStudyTimeRepository>
+  onChange?: () => void
 }
 
 type StudyService = keyof typeof studyServices
@@ -45,7 +46,7 @@ function MinutesForm({ service, minutes, save }: {
   )
 }
 
-export default function StudyTime({ date, repository }: Props) {
+export default function StudyTime({ date, repository, onChange }: Props) {
   const [minutes] = useState(() => {
     try { return repository.getMinutes(date) }
     catch { return null }
@@ -58,7 +59,7 @@ export default function StudyTime({ date, repository }: Props) {
         {minutes ? (
           (Object.keys(studyServices) as StudyService[]).map((service) => (
             <MinutesForm key={service} service={service} minutes={minutes[service]}
-              save={(value) => repository.saveMinutes(date, service, value)} />
+              save={(value) => { repository.saveMinutes(date, service, value); onChange?.() }} />
           ))
         ) : <p className="error" role="alert">学習時間を読み込めませんでした。再読み込みしてください。</p>}
       </div>

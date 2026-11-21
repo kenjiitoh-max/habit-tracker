@@ -12,6 +12,7 @@ interface Props {
   date: string
   repository: HabitRepository
   workoutRepository: WorkoutSetRepository
+  onChange?: () => void
 }
 
 const bestMetrics = {
@@ -50,7 +51,7 @@ function toInput(exerciseId: string, weight: string, reps: string, bodyweight: b
   return { exerciseId, reps: Number(reps), ...(bodyweight ? {} : { weightKg: Number(weight) }) }
 }
 
-export default function WorkoutSets({ date, repository, workoutRepository }: Props) {
+export default function WorkoutSets({ date, repository, workoutRepository, onChange }: Props) {
   const [sets, setSets] = useState<WorkoutSet[] | null>(() => {
     try { return workoutRepository.listSets(date) }
     catch { return null }
@@ -127,6 +128,7 @@ export default function WorkoutSets({ date, repository, workoutRepository }: Pro
       const saved = await workoutRepository.addSet(date, input, selected.bodyweight, pendingId.current)
       refreshAfterSave(history, saved)
       pendingId.current = null
+      onChange?.()
     } catch { setError('セットを保存できませんでした。入力内容やブラウザの保存設定を確認してください。') }
     finally { saving.current = false; setBusy(false) }
   }
@@ -164,6 +166,7 @@ export default function WorkoutSets({ date, repository, workoutRepository }: Pro
       workoutRepository.deleteSet(set.id)
       setSets(workoutRepository.listSets(date))
       if (editing?.id === set.id) setEditing(null)
+      onChange?.()
     } catch { setError('セットを削除できませんでした。もう一度お試しください。') }
   }
 
