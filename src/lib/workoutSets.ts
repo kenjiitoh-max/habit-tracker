@@ -56,6 +56,11 @@ export function createWorkoutSetRepository(demoDate?: string) {
   }
 
   return {
+    previousSet(exerciseId: string, beforeDate: string): WorkoutSet | undefined {
+      const previous = read().filter((item) => item.exerciseId === exerciseId && item.date < beforeDate).reverse()
+        .sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt))[0]
+      return previous ? { ...previous } : undefined
+    },
     listSets(date: string): WorkoutSet[] {
       return read().filter((item) => item.date === date).map((item) => ({ ...item }))
     },
