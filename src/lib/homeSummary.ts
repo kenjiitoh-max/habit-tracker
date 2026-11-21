@@ -1,4 +1,6 @@
 import { getStreak } from './streak'
+import { addDays } from './date'
+import { streakStart } from './streakMilestones'
 import { getActivityHistory } from './activity'
 import { studyServices } from './studyTime'
 import type { StudyDays, StudyService } from './studyTime'
@@ -22,5 +24,9 @@ export function getHomeSummary(habits: Habit[], logs: HabitLog[], days: StudyDay
   ])
   const streak = getStreak('activity', [...activityDates].map((day) => ({ habitId: 'activity', date: day, done: true })), date)
   const unrecorded = items.filter((item) => !item.done)
-  return { unrecorded, allDone: unrecorded.length === 0, streak, ...getActivityHistory([...activityDates], date) }
+  return {
+    unrecorded, allDone: unrecorded.length === 0, streak,
+    streakStart: streak > 0 ? streakStart(streak, activityDates.has(date) ? date : addDays(date, -1)) : null,
+    ...getActivityHistory([...activityDates], date),
+  }
 }

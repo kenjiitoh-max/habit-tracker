@@ -16,6 +16,7 @@ import YesterdayRecords from './YesterdayRecords'
 import WorkoutSets from './WorkoutSets'
 import WorkoutStats from './WorkoutStats'
 import { createXpRepository } from './lib/xp'
+import { createStreakMilestoneRepository } from './lib/streakMilestones'
 import XpCard from './XpCard'
 import HomeSummary from './HomeSummary'
 import HomeBody from './HomeBody'
@@ -30,6 +31,7 @@ export default function App() {
   const [exercises, setExercises] = useState<Exercise[]>([])
   const [date, setDate] = useState(() => today())
   const [xp] = useState(() => createXpRepository(demo))
+  const [milestones] = useState(() => createStreakMilestoneRepository(demo))
   const [studyTimeRepository] = useState(() => createStudyTimeRepository(demo ? date : undefined, xp))
   const [workoutRepository] = useState(() => createWorkoutSetRepository(demo ? date : undefined, xp))
   const [view, setView] = useState<'record' | 'yesterday' | 'stats' | 'exercises' | 'body'>('record')
@@ -128,7 +130,7 @@ export default function App() {
       </nav>
       {view === 'record' ? <>
       <XpCard repository={xp} studyRepository={studyTimeRepository} workoutRepository={workoutRepository} />
-      <HomeSummary habits={habits} logs={logs} date={date} studyRepository={studyTimeRepository} workoutRepository={workoutRepository} loading={loading} error={!!error} exercises={exercises} xpRepository={xp} />
+      <HomeSummary habits={habits} logs={logs} date={date} studyRepository={studyTimeRepository} workoutRepository={workoutRepository} loading={loading} error={!!error} exercises={exercises} xpRepository={xp} milestoneRepository={milestones} />
       <HomeBody />
       <WorkoutSets key={`workout-${date}`} date={date} repository={repository} workoutRepository={workoutRepository} onChange={recordsChanged} />
       <StudyTime key={date} date={date} repository={studyTimeRepository} onChange={recordsChanged} />
