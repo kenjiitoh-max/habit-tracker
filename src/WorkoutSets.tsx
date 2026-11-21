@@ -67,7 +67,7 @@ export default function WorkoutSets({ date, repository, workoutRepository }: Pro
   }, [repository])
 
   const exerciseById = new Map(exercises.map((item) => [item.id, item]))
-  const isBodyweight = (id: string, set?: WorkoutSet) => exerciseById.get(id)?.bodyweight ?? set?.weightKg === undefined
+  const isBodyweightSet = (set: WorkoutSet) => set.weightKg === undefined
   const selected = exerciseById.get(exerciseId)
 
   function add(event: FormEvent<HTMLFormElement>) {
@@ -90,7 +90,7 @@ export default function WorkoutSets({ date, repository, workoutRepository }: Pro
   function update(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!editing || !event.currentTarget.checkValidity()) return
-    const bodyweight = isBodyweight(editing.exerciseId, editing)
+    const bodyweight = isBodyweightSet(editing)
     setError('')
     try {
       workoutRepository.updateSet(editing.id, toInput(editing.exerciseId, editWeight, editReps, bodyweight), bodyweight)
@@ -125,7 +125,7 @@ export default function WorkoutSets({ date, repository, workoutRepository }: Pro
                     <li key={set.id}>
                       {editing?.id === set.id ? (
                         <form className="set-form" onSubmit={update} aria-label={`${name} ${index + 1}セット目を編集`}>
-                          <SetFields idPrefix={`edit-${set.id}`} bodyweight={isBodyweight(set.exerciseId, set)}
+                          <SetFields idPrefix={`edit-${set.id}`} bodyweight={isBodyweightSet(set)}
                             weight={editWeight} reps={editReps} setWeight={setEditWeight} setReps={setEditReps} />
                           <div className="set-actions">
                             <button type="button" className="secondary" onClick={() => setEditing(null)}>キャンセル</button>

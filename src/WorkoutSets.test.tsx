@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import App from './App'
 import { addDays, today } from './lib/date'
 import { createWorkoutSetRepository } from './lib/workoutSets'
+import { getRepository } from './lib/storage'
 
 describe('workout sets UI', () => {
   beforeEach(() => {
@@ -55,6 +56,21 @@ describe('workout sets UI', () => {
     const { habits, logs } = JSON.parse(localStorage.getItem('habit-tracker:v1')!)
     expect({ habits, logs }).toEqual(JSON.parse(legacy))
     expect(screen.getByRole('spinbutton', { name: '筋トレの今日の数値（回）' })).toHaveValue(30)
+  })
+
+  it('keeps a saved weight when the exercise is later changed to bodyweight', async () => {
+    const user = userEvent.setup()
+    createWorkoutSetRepository().addSet(today(), { exerciseId: 'preset-chest-bench-press', reps: 10, weightKg: 60 }, false)
+    await getRepository().updateExercise('preset-chest-bench-press', { bodyweight: true })
+    render(<App />)
+    const section = within(screen.getByRole('region', { name: '今日の筋トレ' }))
+    await user.click(await section.findByRole('button', { name: 'ベンチプレス 1セット目を編集' }))
+    const edit = within(section.getByRole('form', { name: 'ベンチプレス 1セット目を編集' }))
+    expect(edit.getByLabelText('重量（kg）')).toHaveValue(60)
+    await user.clear(edit.getByLabelText('回数'))
+    await user.type(edit.getByLabelText('回数'), '9')
+    await user.click(edit.getByRole('button', { name: '保存' }))
+    expect(createWorkoutSetRepository().listSets(today())[0]).toMatchObject({ weightKg: 60, reps: 9 })
   })
 
   it('shows yesterday’s sets in the review', async () => {
