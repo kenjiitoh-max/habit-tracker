@@ -1,3 +1,4 @@
+import type { CardioSession } from './cardio'
 import { countPersonalBestUpdates } from './activity'
 import { getHomeSummary } from './homeSummary'
 import type { Habit, HabitLog, Exercise } from './types'
@@ -11,9 +12,9 @@ export const badges = [
   ...[10, 50, 100].map((hours) => ({ id: `english-${hours}`, metric: 'minutes' as const, target: hours * 60, condition: `英語の累計時間 ${hours}時間` })),
 ]
 
-export function getBadgeMetrics(habits: Habit[], logs: HabitLog[], study: StudyDays, sets: WorkoutSet[], exercises: Exercise[], date: string) {
+export function getBadgeMetrics(habits: Habit[], logs: HabitLog[], study: StudyDays, sets: WorkoutSet[], exercises: Exercise[], date: string, cardio: CardioSession[] = []) {
   return {
-    days: getHomeSummary(habits, logs, study, sets, date).totalDays,
+    days: getHomeSummary(habits, logs, study, sets, date, cardio).totalDays,
     bests: countPersonalBestUpdates(sets.filter((set) => set.date <= date), exercises),
     minutes: Object.entries(study).filter(([day]) => day <= date).reduce((sum, [, values]) => sum + Object.values(values).reduce((total, value) => total + (Number.isFinite(value) && value > 0 ? value : 0), 0), 0),
   }

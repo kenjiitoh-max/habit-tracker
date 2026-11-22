@@ -1,3 +1,4 @@
+import type { CardioSession } from './cardio'
 import type { StudyDays } from './studyTime'
 import type { WorkoutSet } from './workoutSets'
 import type { BodyMeasurement } from './bodyStorage'
@@ -57,12 +58,13 @@ export function createXpRepository(demo = false) {
       if (minutes >= 1) award(`study:${date}:${service}`, STUDY_XP)
     },
     awardSet(id: string) { award(`set:${id}`, WORKOUT_SET_XP) },
+    awardCardio(id: string) { award(`cardio:${id}`, 10) },
     awardBody(measurement: BodyMeasurement) {
       if (isBodyMeasurement(measurement)) award(`body:${measurement.date}`, BODY_XP)
     },
     awardComeback(date: string) { award(comebackKey(date), COMEBACK_XP) },
     hasComeback(date: string) { return Object.hasOwn(read().awarded, comebackKey(date)) },
-    backfill(days: StudyDays, sets: WorkoutSet[], measurements: BodyMeasurement[] = []) {
+    backfill(days: StudyDays, sets: WorkoutSet[], measurements: BodyMeasurement[] = [], cardio: CardioSession[] = []) {
       const data = read()
       let changed = false
       const add = (key: string, amount: number) => {
@@ -77,6 +79,7 @@ export function createXpRepository(demo = false) {
         }
       }
       for (const set of sets) add(`set:${set.id}`, WORKOUT_SET_XP)
+      for (const session of cardio) add(`cardio:${session.id}`, 10)
       for (const measurement of measurements) {
         if (isBodyMeasurement(measurement)) add(`body:${measurement.date}`, BODY_XP)
       }

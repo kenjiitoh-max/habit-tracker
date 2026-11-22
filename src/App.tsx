@@ -1,3 +1,5 @@
+import Cardio from './Cardio'
+import { createCardioRepository } from './lib/cardio'
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { addDays, today } from './lib/date'
@@ -38,6 +40,7 @@ export default function App() {
   const [bodyRepository] = useState(() => getBodyRepository(xp))
   const [milestones] = useState(() => createStreakMilestoneRepository(demo))
   const [studyTimeRepository] = useState(() => createStudyTimeRepository(demo ? date : undefined, xp))
+  const [cardioRepository] = useState(() => createCardioRepository(demo ? date : undefined, xp))
   const [workoutRepository] = useState(() => createWorkoutSetRepository(demo ? date : undefined, xp))
   const [view, setView] = useState<'record' | 'yesterday' | 'stats' | 'exercises' | 'body'>('record')
   const [loading, setLoading] = useState(true)
@@ -67,10 +70,10 @@ export default function App() {
   useEffect(() => {
     if (loading || error) return
     try {
-      const { comebackDay, recordedToday } = getHomeSummary(habits, logs, studyTimeRepository.listDays(), workoutRepository.listAllSets(), date)
+      const { comebackDay, recordedToday } = getHomeSummary(habits, logs, studyTimeRepository.listDays(), workoutRepository.listAllSets(), date, cardioRepository.listSessions())
       if (comebackDay && recordedToday) xp.awardComeback(date)
     } catch { /* Records that cannot be read earn no bonus; HomeSummary reports the failure. */ }
-  }, [loading, error, habits, logs, date, recordsVersion, studyTimeRepository, workoutRepository, xp])
+  }, [loading, error, habits, logs, date, recordsVersion, studyTimeRepository, workoutRepository, cardioRepository, xp])
 
   useEffect(() => {
     const refreshDate = () => setDate(today())
@@ -142,12 +145,13 @@ export default function App() {
         <button data-testid="nav-body" aria-pressed={view === 'body'} onClick={() => setView('body')}>体の記録</button>
       </nav>
       {view === 'record' ? <>
-      <XpCard repository={xp} studyRepository={studyTimeRepository} workoutRepository={workoutRepository} bodyRepository={bodyRepository} />
-      <HomeSummary habits={habits} logs={logs} date={date} studyRepository={studyTimeRepository} workoutRepository={workoutRepository} loading={loading} error={!!error} exercises={exercises} xpRepository={xp} milestoneRepository={milestones} />
-      <DailyWrapUp habits={habits} logs={logs} exercises={exercises} date={date} studyRepository={studyTimeRepository} workoutRepository={workoutRepository} xpRepository={xp} loading={loading} error={!!error} />
+      <XpCard cardioRepository={cardioRepository} repository={xp} studyRepository={studyTimeRepository} workoutRepository={workoutRepository} bodyRepository={bodyRepository} />
+      <HomeSummary cardioRepository={cardioRepository} habits={habits} logs={logs} date={date} studyRepository={studyTimeRepository} workoutRepository={workoutRepository} loading={loading} error={!!error} exercises={exercises} xpRepository={xp} milestoneRepository={milestones} />
+      <DailyWrapUp cardioRepository={cardioRepository} habits={habits} logs={logs} exercises={exercises} date={date} studyRepository={studyTimeRepository} workoutRepository={workoutRepository} xpRepository={xp} loading={loading} error={!!error} />
       <HomeBody />
-      <Badges habits={habits} logs={logs} exercises={exercises} date={date} studyRepository={studyTimeRepository} workoutRepository={workoutRepository} demo={demo} loading={loading} error={!!error} />
+      <Badges cardioRepository={cardioRepository} habits={habits} logs={logs} exercises={exercises} date={date} studyRepository={studyTimeRepository} workoutRepository={workoutRepository} demo={demo} loading={loading} error={!!error} />
       <WorkoutSets key={`workout-${date}`} date={date} repository={repository} workoutRepository={workoutRepository} onChange={recordsChanged} />
+      <Cardio key={`cardio-${date}`} date={date} repository={cardioRepository} onChange={recordsChanged} />
       <StudyTime key={date} date={date} repository={studyTimeRepository} onChange={recordsChanged} />
       <section aria-labelledby="habits-heading">
         <div className="section-heading"><h2 id="habits-heading">わたしの習慣 <span>{habits.length}</span></h2><span className="small-note">一歩ずつ、こつこつ。</span></div>

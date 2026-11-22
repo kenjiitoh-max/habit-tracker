@@ -1,12 +1,14 @@
+import type { CardioRepository } from './lib/cardio'
 import { useEffect, useState } from 'react'
 import { badges, createBadgeRepository, earnedBadges, getBadgeMetrics } from './lib/badges'
 import type { Exercise, Habit, HabitLog } from './lib/types'
 import type { createStudyTimeRepository } from './lib/studyTime'
 import type { WorkoutSetRepository } from './lib/workoutSets'
 
-export default function Badges({ habits, logs, exercises, date, studyRepository, workoutRepository, demo, loading, error }: {
+export default function Badges({ habits, logs, exercises, date, studyRepository, workoutRepository, cardioRepository, demo, loading, error }: {
   habits: Habit[]; logs: HabitLog[]; exercises: Exercise[]; date: string
-  studyRepository: ReturnType<typeof createStudyTimeRepository>; workoutRepository: WorkoutSetRepository
+  studyRepository: ReturnType<typeof createStudyTimeRepository>; cardioRepository?: CardioRepository
+  workoutRepository: WorkoutSetRepository
   demo: boolean; loading: boolean; error: boolean
 }) {
   const [repository] = useState(() => createBadgeRepository(demo))
@@ -15,7 +17,7 @@ export default function Badges({ habits, logs, exercises, date, studyRepository,
   let earned: string[] = []
   try {
     if (!loading && !error) {
-      metrics = getBadgeMetrics(habits, logs, studyRepository.listDays(), workoutRepository.listAllSets(), exercises, date)
+      metrics = getBadgeMetrics(habits, logs, studyRepository.listDays(), workoutRepository.listAllSets(), exercises, date, cardioRepository?.listSessions())
       earned = earnedBadges(metrics, repository.read())
     }
   } catch { metrics = undefined }
