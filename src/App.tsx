@@ -179,7 +179,7 @@ export default function App() {
         <button className="add-button" data-testid="add-habit-button" onClick={() => openForm(null)} disabled={loading || (!!error && !showDialog)}><span aria-hidden="true">＋</span> 習慣を追加する</button>
       </section>
       </> : view === 'exercises' ? <ExercisesView repository={repository} /> : view === 'body' ? <BodyView date={date} repository={bodyRepository} /> : loading ? <p role="status">読み込み中…</p> : !error ? (
-        view === 'yesterday' ? <YesterdayRecords key={yesterday} date={yesterday} habits={habits} logs={logs}
+        view === 'yesterday' ? <YesterdayRecords cardioRepository={cardioRepository} key={yesterday} date={yesterday} habits={habits} logs={logs}
           studyTimeRepository={studyTimeRepository} repository={repository} workoutRepository={workoutRepository} onBack={() => setView('record')} /> :
           <StatsView habits={habits} logs={logs} date={date}>
             <WorkoutStats repository={repository} workoutRepository={workoutRepository} />

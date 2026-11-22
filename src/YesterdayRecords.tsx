@@ -5,6 +5,7 @@ import type { HabitRepository } from './lib/storage'
 import type { Exercise, Habit, HabitLog } from './lib/types'
 import { formatSet, groupByExercise } from './lib/workoutSets'
 import type { WorkoutSetRepository } from './lib/workoutSets'
+import type { CardioRepository } from './lib/cardio'
 
 interface Props {
   date: string
@@ -13,10 +14,16 @@ interface Props {
   studyTimeRepository: ReturnType<typeof createStudyTimeRepository>
   repository: HabitRepository
   workoutRepository: WorkoutSetRepository
+  cardioRepository?: CardioRepository
   onBack: () => void
 }
 
-export default function YesterdayRecords({ date, habits, logs, studyTimeRepository, repository, workoutRepository, onBack }: Props) {
+export default function YesterdayRecords({ date, habits, logs, studyTimeRepository, repository, workoutRepository, cardioRepository, onBack }: Props) {
+  const cardioRows = (cardioRepository?.listSessions() ?? []).filter((session) => session.date === date).map((session) => ({
+    id: session.id,
+    name: session.type,
+    value: `${session.minutes} 分${session.distanceKm === undefined ? '' : ` · ${session.distanceKm} km`}`,
+  }))
   const [minutes] = useState(() => {
     try { return studyTimeRepository.getMinutes(date) }
     catch { return null }
@@ -61,10 +68,11 @@ export default function YesterdayRecords({ date, habits, logs, studyTimeReposito
       <p className="date"><time dateTime={date}>{date.replaceAll('-', '.')}</time> <span>日本時間</span></p>
       {habitRows.length > 0 && <RecordList title="わたしの習慣" rows={habitRows} />}
       {workoutRows.length > 0 && <RecordList title="筋トレ" rows={workoutRows} />}
+      {cardioRows.length > 0 && <RecordList title="有酸素運動" rows={cardioRows} />}
       {studyRows.length > 0 && <RecordList title="英語学習" rows={studyRows} />}
       {minutes === null && <p className="error" role="alert">学習時間を読み込めませんでした。再読み込みしてください。</p>}
       {sets === null && <p className="error" role="alert">筋トレの記録を読み込めませんでした。再読み込みしてください。</p>}
-      {minutes !== null && sets !== null && !workoutLoading && !habitRows.length && !studyRows.length && !workoutRows.length && (
+      {minutes !== null && sets !== null && !workoutLoading && !habitRows.length && !studyRows.length && !workoutRows.length && !cardioRows.length && (
         <p className="habit-card empty">昨日の記録はありません。</p>
       )}
       <button className="secondary yesterday-back" onClick={onBack}>今日の入力へ戻る</button>
