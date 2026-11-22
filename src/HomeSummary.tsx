@@ -1,3 +1,4 @@
+import type { CardioRepository } from './lib/cardio'
 import { useEffect, useReducer, useState } from 'react'
 import { getHomeSummary } from './lib/homeSummary'
 import type { Exercise, Habit, HabitLog } from './lib/types'
@@ -9,11 +10,12 @@ import type { XpRepository } from './lib/xp'
 import type { createStudyTimeRepository } from './lib/studyTime'
 import type { WorkoutSetRepository } from './lib/workoutSets'
 
-export default function HomeSummary({ habits, logs, date, studyRepository, workoutRepository, loading, error, exercises = [], xpRepository, milestoneRepository }: {
+export default function HomeSummary({ habits, logs, date, studyRepository, workoutRepository, cardioRepository, loading, error, exercises = [], xpRepository, milestoneRepository }: {
   habits: Habit[]
   logs: HabitLog[]
   date: string
   studyRepository: ReturnType<typeof createStudyTimeRepository>
+  cardioRepository?: CardioRepository
   workoutRepository: WorkoutSetRepository
   loading: boolean
   error: boolean
@@ -34,7 +36,7 @@ export default function HomeSummary({ habits, logs, date, studyRepository, worko
   let updates = 0
   try {
     const sets = workoutRepository.listAllSets()
-    summary = getHomeSummary(habits, logs, studyRepository.listDays(), sets, date)
+    summary = getHomeSummary(habits, logs, studyRepository.listDays(), sets, date, cardioRepository?.listSessions())
     if (summary.broken) updates = countPersonalBestUpdates(sets.filter((set) => set.date <= date), exercises)
   }
   catch { /* The summary must not claim completion when records cannot be read. */ }
@@ -73,7 +75,7 @@ export default function HomeSummary({ habits, logs, date, studyRepository, worko
           <li>自己ベスト更新 {updates}回</li>
         </ul>
         {summary.longest && <p className="streak-hall">🏆 殿堂入り 最長ストリーク {summary.longest.length}日<br /><small>{summary.longest.start}〜{summary.longest.end}</small></p>}
-        <small>集計対象：習慣チェック・学習記録・筋トレのいずれかを記録した日（体の測定は含みません）</small>
+        <small>集計対象：習慣チェック・学習記録・筋トレ・有酸素運動のいずれかを記録した日（体の測定は含みません）</small>
       </section>}
       <div aria-live="polite">
         <h2>{summary.allDone ? '✓ 達成済み' : '未記録の項目'}</h2>

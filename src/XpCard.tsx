@@ -1,3 +1,4 @@
+import type { CardioRepository } from './lib/cardio'
 import { useEffect, useReducer, useState } from 'react'
 import { getLevel, XP_CHANGED, XP_PER_LEVEL } from './lib/xp'
 import type { XpRepository } from './lib/xp'
@@ -5,9 +6,10 @@ import type { createStudyTimeRepository } from './lib/studyTime'
 import type { WorkoutSetRepository } from './lib/workoutSets'
 import type { BodyRepository } from './lib/bodyStorage'
 
-export default function XpCard({ repository, studyRepository, workoutRepository, bodyRepository }: {
+export default function XpCard({ repository, studyRepository, workoutRepository, bodyRepository, cardioRepository }: {
   repository: XpRepository
   studyRepository: ReturnType<typeof createStudyTimeRepository>
+  cardioRepository?: CardioRepository
   workoutRepository: WorkoutSetRepository
   bodyRepository: BodyRepository
 }) {
@@ -33,7 +35,7 @@ export default function XpCard({ repository, studyRepository, workoutRepository,
     }).then((measurements) => {
       if (active) {
         backfilling = true
-        try { repository.backfill(studyRepository.listDays(), workoutRepository.listAllSets(), measurements) }
+        try { repository.backfill(studyRepository.listDays(), workoutRepository.listAllSets(), measurements, cardioRepository?.listSessions()) }
         finally { backfilling = false }
       }
     }).catch(() => { if (active) setError(true) })
@@ -42,7 +44,7 @@ export default function XpCard({ repository, studyRepository, workoutRepository,
       window.removeEventListener(XP_CHANGED, changed)
       window.removeEventListener('storage', refresh)
     }
-  }, [repository, studyRepository, workoutRepository, bodyRepository])
+  }, [repository, studyRepository, workoutRepository, bodyRepository, cardioRepository])
   useEffect(() => {
     if (!celebration) return
     const timer = window.setTimeout(() => setCelebration(null), 5000)

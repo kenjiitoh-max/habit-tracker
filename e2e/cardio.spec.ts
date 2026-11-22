@@ -1,0 +1,76 @@
+import { expect, test } from '@playwright/test'
+
+test('昨日の有酸素運動だけの記録を表示し、デモでは実データを表示しない', async ({ page }) => {
+  await page.clock.install({ time: new Date('2026-06-04T03:00:00Z') })
+  await page.addInitScript(() => {
+    localStorage.setItem('habit-tracker:cardio:v1', JSON.stringify({ sessions: [
+      { id: 'yesterday-run', date: '2026-06-03', type: 'ランニング', minutes: 25, distanceKm: 4, createdAt: '2026-06-03T12:00:00Z' },
+      { id: 'yesterday-swim', date: '2026-06-03', type: '水泳', minutes: 15, createdAt: '2026-06-03T13:00:00Z' },
+      { id: 'today-bike', date: '2026-06-04', type: 'バイク', minutes: 10, createdAt: '2026-06-04T00:00:00Z' },
+    ] }))
+  })
+  await page.goto('./')
+  await page.getByRole('button', { name: '昨日の記録', exact: true }).click()
+  const view = page.getByRole('region', { name: '昨日の記録', exact: true })
+  await expect(view).toContainText('ランニング')
+  await expect(view).toContainText('25 分 · 4 km')
+  await expect(view).toContainText('水泳')
+  await expect(view).toContainText('15 分')
+  await expect(view).not.toContainText('バイク')
+  await expect(view).not.toContainText('昨日の記録はありません')
+  await page.goto('./?demo=1')
+  await page.getByRole('button', { name: '昨日の記録', exact: true }).click()
+  await expect(view).not.toContainText('ランニング')
+  await expect(view).not.toContainText('水泳')
+})
+
+test('有酸素運動を追加・編集・削除し、再読み込みでも保存・XPと従来データを維持する', async ({ page }) => {
+  await page.addInitScript(() => {
+    if (localStorage.getItem('habit-tracker:v1')) return
+    localStorage.setItem('habit-tracker:v1', JSON.stringify({ habits: [], logs: [], exercises: [] }))
+    localStorage.setItem('habit-tracker:workout-sets:v1', '{"sets":[]}')
+  })
+  await page.goto('./')
+  const original = await page.evaluate(() => [localStorage.getItem('habit-tracker:v1'), localStorage.getItem('habit-tracker:workout-sets:v1')])
+  const card = page.getByRole('region', { name: '有酸素運動', exact: true })
+  await expect(card).toContainText('まだありません')
+  await card.getByRole('button', { name: '有酸素運動を保存' }).click()
+  await expect(card.getByRole('alert')).toContainText('時間は1以上の整数')
+  await card.getByLabel('時間（分）').fill('20')
+  await card.getByLabel('距離（km・任意）').fill('3')
+  await card.getByRole('button', { name: '有酸素運動を保存' }).click()
+  await expect(card.getByRole('list')).toContainText('ランニング · 20分 · 3 km')
+  await expect(page.getByTestId('summary-streak')).toContainText('1日連続')
+  await expect(page.getByTestId('total-xp')).toContainText('10 XP')
+  await expect(page.getByRole('region', { name: '今日の締め' })).toContainText('今日 +10 XP')
+  await page.reload()
+  await expect(card.getByRole('list')).toContainText('ランニング · 20分 · 3 km')
+  await card.getByRole('button', { name: '編集', exact: true }).click()
+  await card.getByLabel('運動の種類').selectOption('バイク')
+  await card.getByLabel('時間（分）').fill('30')
+  await card.getByLabel('距離（km・任意）').fill('')
+  await card.getByRole('button', { name: '変更を保存' }).click()
+  await expect(card.getByRole('list')).toHaveText(/バイク · 30分/)
+  await expect(page.getByTestId('total-xp')).toContainText('10 XP')
+  await card.getByRole('button', { name: '削除', exact: true }).click()
+  await expect(card).toContainText('まだありません')
+  await page.reload()
+  await expect(card).toContainText('まだありません')
+  await expect(page.getByTestId('total-xp')).toContainText('10 XP')
+  await expect(page.getByTestId('summary-streak')).toContainText('0日連続')
+  expect(await page.evaluate(() => [localStorage.getItem('habit-tracker:v1'), localStorage.getItem('habit-tracker:workout-sets:v1')])).toEqual(original)
+})
+
+test('デモでは架空データだけを表示し実データを読み書きしない', async ({ page }) => {
+  await page.goto('./')
+  await page.evaluate(() => localStorage.setItem('habit-tracker:cardio:v1', 'private cardio data'))
+  await page.goto('./?demo=1')
+  const card = page.getByRole('region', { name: '有酸素運動', exact: true })
+  await expect(card.getByRole('list')).toContainText('ウォーキング · 20分 · 1.5 km')
+  await card.getByLabel('時間（分）').fill('15')
+  await card.getByRole('button', { name: '有酸素運動を保存' }).click()
+  await expect(card.getByRole('list')).toContainText('ランニング · 15分')
+  expect(await page.evaluate(() => localStorage.getItem('habit-tracker:cardio:v1'))).toBe('private cardio data')
+  await page.reload()
+  await expect(card.getByRole('list')).not.toContainText('ランニング')
+})
